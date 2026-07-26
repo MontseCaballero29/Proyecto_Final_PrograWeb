@@ -1,0 +1,14 @@
+package com.manosdeoaxaca.backend.repositorio;
+
+import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.manosdeoaxaca.backend.model.Usuario;
+
+public interface UsuarioRepositorio extends JpaRepository<Usuario, Long> {
+
+    Optional<Usuario> findByCorreo(String correo);
+
+    boolean existsByCorreo(String correo);
+}
