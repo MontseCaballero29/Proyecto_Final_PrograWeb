@@ -628,3 +628,19 @@ tbody tr:last-child td {
     grid-template-columns: 1fr;
   }
 }
+
+.opcion-panel,
+.opcion-menu {
+  text-decoration: none;
+}
+
+.opcion-menu-activa {
+  background: #e7ece8;
+  color: #3c5547;
+  font-weight: 700;
+}
+
+.opcion-panel-activa {
+  background: #496453;
+  color: #ffffff;
+}
