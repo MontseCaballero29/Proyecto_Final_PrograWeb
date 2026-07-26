@@ -1,0 +1,7 @@
+CREATE TABLE comunidad (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(120) NOT NULL,
+  region VARCHAR(60)  NOT NULL,
+  latitud DECIMAL(9,6),
+  longitud DECIMAL(9,6)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
