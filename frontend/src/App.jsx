@@ -6,6 +6,7 @@ import {
   Building2,
   ChevronDown,
   Grid2X2,
+  LogOut,
   MapPin,
   Search,
   ShieldCheck,
@@ -15,10 +16,12 @@ import {
 
 import {
   BrowserRouter,
+  Navigate,
   NavLink,
   Outlet,
   Route,
   Routes,
+  useNavigate,
 } from "react-router-dom";
 
 import Login from "./paginas/Login";
@@ -27,6 +30,28 @@ import RegistrarTaller from "./paginas/RegistrarTaller";
 import EditarTaller from "./paginas/EditarTaller";
 
 import "./App.css";
+
+//metodos auxiliares
+function obtenerSesion() {
+  const correo = localStorage.getItem("correo");
+  const rol = localStorage.getItem("rol");
+  const token = localStorage.getItem("token");
+
+  return { correo, rol, token };
+}
+
+function haySesion() {
+  return Boolean(localStorage.getItem("token"));
+}
+
+function obtenerIniciales(correo) {
+  if (typeof correo !== "string" || correo.trim() === "") {
+    return "MO";
+  }
+
+  return correo.trim().slice(0, 2).toUpperCase();
+}
+
 
 const API_TALLERES =
   "https://6a545ff38547b9f7111c26d6.mockapi.io/talleres";
@@ -505,6 +530,16 @@ function PanelPrincipal() {
 }
 
 function Layout() {
+  const navigate = useNavigate();
+  const sesion = obtenerSesion();
+
+  const cerrarSesion = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("correo");
+    localStorage.removeItem("rol");
+    navigate("/login");
+  };
+
   return (
       <div className="aplicacion">
         <header className="barra-superior">
@@ -547,11 +582,22 @@ function Layout() {
 
             <div className="perfil">
               <div className="perfil-texto">
-                <strong>Sin iniciar sesión</strong>
-                <span>Rol no disponible</span>
+                <strong>{sesion.correo || "Sin iniciar sesión"}</strong>
+                <span>{sesion.rol || "Rol no disponible"}</span>
               </div>
 
-              <div className="avatar">MO</div>
+              <div className="avatar">
+                {obtenerIniciales(sesion.correo)}
+              </div>
+
+              <button
+                type="button"
+                className="boton-salir"
+                onClick={cerrarSesion}
+                aria-label="Cerrar sesión"
+              >
+                <LogOut size={19} />
+              </button>
             </div>
           </div>
         </header>
@@ -619,16 +665,25 @@ function Layout() {
   );
 }
 
+function RutaProtegida() {
+  if (!haySesion()) {
+    return <Navigate to="/login" replace />;
+  }
+  return <Outlet />;
+}
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route element={<RutaProtegida />}>
         <Route element={<Layout />}>
           <Route path="/" element={<PanelPrincipal />} />
           <Route path="/talleres" element={<Talleres />} />
           <Route path="/talleres/nuevo" element={<RegistrarTaller />} />
           <Route path="/talleres/editar/:id" element={<EditarTaller />} />
+        </Route>
         </Route>
       </Routes>
     </BrowserRouter>

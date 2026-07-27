@@ -848,3 +848,20 @@ tbody tr:last-child td {
     padding: 30px 22px;
   }
 }
+
+.boton-salir {
+  display: grid;
+  place-items: center;
+  width: 39px;
+  height: 39px;
+  border: 1px solid var(--borde);
+  border-radius: 50%;
+  background: var(--blanco);
+  color: var(--texto-suave);
+}
+
+.boton-salir:hover {
+  border-color: var(--rojo);
+  background: #f5d2cd;
+  color: var(--rojo);
+}
