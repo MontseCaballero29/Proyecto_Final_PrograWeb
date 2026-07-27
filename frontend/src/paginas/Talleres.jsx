@@ -9,6 +9,8 @@ import {
   Pencil,
   Plus,
   RefreshCw,
+  Search,
+  X,
 } from "lucide-react";
 
 import "./Talleres.css";
@@ -23,12 +25,29 @@ function Talleres() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
 
+  const [municipio, setMunicipio] = useState("");
+  const [municipioAplicado, setMunicipioAplicado] =
+    useState("");
+
   const cargarTalleres = useCallback(async () => {
     try {
       setCargando(true);
       setError("");
 
-      const respuesta = await fetch(API_TALLERES);
+      const url = new URL(API_TALLERES);
+
+      /*
+       * El filtro se manda a la API como parámetro.
+       * En MockAPI el campo disponible se llama "ubicacion".
+       */
+      if (municipioAplicado.trim()) {
+        url.searchParams.set(
+          "ubicacion",
+          municipioAplicado.trim(),
+        );
+      }
+
+      const respuesta = await fetch(url.toString());
 
       if (!respuesta.ok) {
         throw new Error(
@@ -53,11 +72,22 @@ function Talleres() {
     } finally {
       setCargando(false);
     }
-  }, []);
+  }, [municipioAplicado]);
 
   useEffect(() => {
     cargarTalleres();
   }, [cargarTalleres]);
+
+  const aplicarFiltro = (evento) => {
+    evento.preventDefault();
+
+    setMunicipioAplicado(municipio.trim());
+  };
+
+  const limpiarFiltro = () => {
+    setMunicipio("");
+    setMunicipioAplicado("");
+  };
 
   return (
     <section className="pagina-talleres">
@@ -104,13 +134,75 @@ function Talleres() {
 
       <div className="detalle-artesanal" />
 
+      <form
+        className="filtros-talleres"
+        onSubmit={aplicarFiltro}
+      >
+        <div className="campo-filtro-municipio">
+          <label htmlFor="municipio">
+            Filtrar por municipio
+          </label>
+
+          <div className="entrada-filtro-municipio">
+            <Search size={18} />
+
+            <input
+              id="municipio"
+              name="municipio"
+              type="search"
+              value={municipio}
+              onChange={(evento) =>
+                setMunicipio(evento.target.value)
+              }
+              placeholder="Ej. San Bartolo Coyotepec"
+              disabled={cargando}
+            />
+          </div>
+        </div>
+
+        <div className="acciones-filtro-talleres">
+          <button
+            className="boton-aplicar-filtro"
+            type="submit"
+            disabled={cargando}
+          >
+            <Search size={17} />
+            Filtrar
+          </button>
+
+          {municipioAplicado && (
+            <button
+              className="boton-limpiar-filtro"
+              type="button"
+              onClick={limpiarFiltro}
+              disabled={cargando}
+            >
+              <X size={17} />
+              Limpiar
+            </button>
+          )}
+        </div>
+      </form>
+
+      {municipioAplicado && (
+        <p className="filtro-aplicado">
+          Mostrando talleres ubicados en:{" "}
+          <strong>{municipioAplicado}</strong>
+        </p>
+      )}
+
       <article className="resumen-talleres">
         <div className="icono-resumen">
           <Building2 size={25} />
         </div>
 
         <div>
-          <span>Total de talleres</span>
+          <span>
+            {municipioAplicado
+              ? "Talleres encontrados"
+              : "Total de talleres"}
+          </span>
+
           <strong>{talleres.length}</strong>
         </div>
       </article>
@@ -119,7 +211,10 @@ function Talleres() {
         <div className="titulo-listado-talleres">
           <div>
             <h3>Listado de talleres</h3>
-            <p>Información obtenida desde la API</p>
+
+            <p>
+              Información obtenida desde la API
+            </p>
           </div>
         </div>
 
@@ -155,12 +250,26 @@ function Talleres() {
             <div className="estado-talleres">
               <Building2 size={36} />
 
-              <h4>No hay talleres registrados</h4>
+              <h4>
+                {municipioAplicado
+                  ? "No se encontraron talleres"
+                  : "No hay talleres registrados"}
+              </h4>
 
               <p>
-                Los talleres aparecerán aquí cuando se
-                registren en la API.
+                {municipioAplicado
+                  ? `No existen talleres registrados con la ubicación "${municipioAplicado}".`
+                  : "Los talleres aparecerán aquí cuando se registren en la API."}
               </p>
+
+              {municipioAplicado && (
+                <button
+                  type="button"
+                  onClick={limpiarFiltro}
+                >
+                  Mostrar todos los talleres
+                </button>
+              )}
             </div>
           )}
 
