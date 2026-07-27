@@ -16,10 +16,12 @@ import {
 import {
   BrowserRouter,
   NavLink,
+  Outlet,
   Route,
   Routes,
 } from "react-router-dom";
 
+import Login from "./paginas/Login";
 import Talleres from "./paginas/Talleres";
 import RegistrarTaller from "./paginas/RegistrarTaller";
 import EditarTaller from "./paginas/EditarTaller";
@@ -502,9 +504,8 @@ function PanelPrincipal() {
   );
 }
 
-function App() {
+function Layout() {
   return (
-    <BrowserRouter>
       <div className="aplicacion">
         <header className="barra-superior">
           <div className="marca">
@@ -611,33 +612,25 @@ function App() {
           </aside>
 
           <main className="contenido">
-
-            <Routes>
-  <Route
-    path="/"
-    element={<PanelPrincipal />}
-  />
-
-  <Route
-    path="/talleres"
-    element={<Talleres />}
-  />
-
-  <Route
-    path="/talleres/nuevo"
-    element={<RegistrarTaller />}
-  />
-
-  <Route
-    path="/talleres/editar/:id"
-    element={<EditarTaller />}
-  />
-</Routes>
-
-
+            <Outlet />
           </main>
         </div>
       </div>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route element={<Layout />}>
+          <Route path="/" element={<PanelPrincipal />} />
+          <Route path="/talleres" element={<Talleres />} />
+          <Route path="/talleres/nuevo" element={<RegistrarTaller />} />
+          <Route path="/talleres/editar/:id" element={<EditarTaller />} />
+        </Route>
+      </Routes>
     </BrowserRouter>
   );
 }

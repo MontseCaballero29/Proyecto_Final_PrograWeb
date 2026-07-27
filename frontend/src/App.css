@@ -644,3 +644,207 @@ tbody tr:last-child td {
   background: #496453;
   color: #ffffff;
 }
+
+
+.pagina-login {
+  display: flex;
+  min-height: 100vh;
+  color: var(--texto);
+}
+
+.marca-login {
+  flex: 0 0 42%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 40px 40px 34px;
+  background: var(--verde-oscuro);
+  color: var(--blanco);
+  text-align: center;
+}
+
+.greca-login {
+  width: 100%;
+  height: 16px;
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='16'><path d='M0 12 L6 12 L6 4 L18 4 L18 12 L24 12' fill='none' stroke='%23b89a2d' stroke-width='2'/></svg>");
+  background-repeat: repeat-x;
+  background-position: center;
+}
+
+.marca-login-centro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.logo-login {
+  width: 132px;
+  height: 132px;
+  object-fit: contain;
+}
+
+.marca-login-centro h1 {
+  margin: 6px 0 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2.1rem;
+  font-weight: 500;
+}
+
+.marca-login-centro p {
+  margin: 0;
+  max-width: 300px;
+  color: #cdd6ce;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.greca-login-pie {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.greca-login-pie span {
+  color: #b7c1b8;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+}
+
+.formulario-login {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background: var(--crema);
+}
+
+.tarjeta-login {
+  width: 100%;
+  max-width: 360px;
+}
+
+.tarjeta-login h2 {
+  margin: 0 0 4px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.7rem;
+  font-weight: 500;
+}
+
+.subtitulo-login {
+  margin: 0 0 14px;
+  color: var(--texto-suave);
+  font-size: 0.88rem;
+}
+
+.linea-dorada {
+  height: 2px;
+  margin: 14px 0;
+  background: var(--amarillo);
+}
+
+.campo-login {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 16px;
+}
+
+.campo-login label {
+  color: #484b46;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.campo-login input {
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  background: var(--blanco);
+  color: var(--texto);
+  outline: 0;
+}
+
+.campo-login input::placeholder {
+  color: #b0b1ad;
+}
+
+.campo-login input:focus {
+  border-color: var(--verde);
+  box-shadow: 0 0 0 3px rgba(73, 100, 83, 0.15);
+}
+
+.recuperar-login {
+  display: inline-block;
+  margin-bottom: 18px;
+  color: var(--azul);
+  font-size: 0.82rem;
+  text-decoration: none;
+}
+
+.recuperar-login:hover {
+  text-decoration: underline;
+}
+
+.error-login {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #f5d2cd;
+  color: #9c3029;
+  font-size: 0.84rem;
+}
+
+.tarjeta-login button {
+  width: 100%;
+  height: 46px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--rojo);
+  color: var(--blanco);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.tarjeta-login button:hover {
+  background: #8f2637;
+}
+
+.tarjeta-login button:disabled {
+  background: #c98a94;
+  cursor: default;
+}
+
+.nota-login {
+  margin: 0;
+  color: var(--texto-suave);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 800px) {
+  .pagina-login {
+    flex-direction: column;
+  }
+
+  .marca-login {
+    flex: none;
+    padding: 24px;
+    gap: 20px;
+  }
+
+  .logo-login {
+    width: 96px;
+    height: 96px;
+  }
+
+  .formulario-login {
+    padding: 30px 22px;
+  }
+}

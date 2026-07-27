@@ -1,4 +1,6 @@
-# Secretos - NUNCA subir
+node_modules/
+
+# Nunca subir
 backend/src/main/resources/application.properties
 
 # Frontend
