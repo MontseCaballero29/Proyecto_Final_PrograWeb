@@ -1,10 +1,10 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+
 import {
   BarChart3,
   Bell,
-  CalendarDays,
+  Building2,
   ChevronDown,
-  CircleDollarSign,
-  Clock3,
   Grid2X2,
   MapPin,
   Search,
@@ -21,7 +21,12 @@ import {
 } from "react-router-dom";
 
 import Talleres from "./paginas/Talleres";
+import RegistrarTaller from "./paginas/RegistrarTaller";
+
 import "./App.css";
+
+const API_TALLERES =
+  "https://6a545ff38547b9f7111c26d6.mockapi.io/talleres";
 
 const seccionesMenu = [
   {
@@ -68,132 +73,221 @@ const seccionesMenu = [
   },
 ];
 
-const solicitudes = [
-  {
-    folio: "VAL-0842",
-    artesano: "María Teresa Cruz",
-    comunidad: "Teotitlán del Valle",
-    tecnica: "Lana en telar",
-    estado: "En revisión",
-    clase: "revision",
-  },
-  {
-    folio: "VAL-0841",
-    artesano: "Taller Jacobo y María",
-    comunidad: "San Martín Tilcajete",
-    tecnica: "Talla en madera",
-    estado: "Falta documento",
-    clase: "documento",
-  },
-  {
-    folio: "VAL-0840",
-    artesano: "Colectivo Mujeres del Barro",
-    comunidad: "San Bartolo Coyotepec",
-    tecnica: "Barro negro",
-    estado: "Aprobada",
-    clase: "aprobada",
-  },
-  {
-    folio: "VAL-0839",
-    artesano: "Pedro Mendoza",
-    comunidad: "Santo Tomás Jalieza",
-    tecnica: "Telar de cintura",
-    estado: "Sin asignar",
-    clase: "sin-asignar",
-  },
+const clasesBarras = [
+  "azul",
+  "rosa",
+  "naranja",
+  "marino",
+  "amarillo",
 ];
 
-const ingresos = [
-  {
-    comunidad: "Teotitlán del Valle",
-    cantidad: "$62,400",
-    porcentaje: 88,
-    clase: "azul",
-  },
-  {
-    comunidad: "San Bartolo Coyotepec",
-    cantidad: "$50,100",
-    porcentaje: 72,
-    clase: "rosa",
-  },
-  {
-    comunidad: "San Martín Tilcajete",
-    cantidad: "$38,300",
-    porcentaje: 55,
-    clase: "naranja",
-  },
-  {
-    comunidad: "Santo Tomás Jalieza",
-    cantidad: "$23,700",
-    porcentaje: 35,
-    clase: "marino",
-  },
-  {
-    comunidad: "Ocotlán de Morelos",
-    cantidad: "$10,000",
-    porcentaje: 20,
-    clase: "amarillo",
-  },
-];
+function obtenerTexto(valor, valorPredeterminado) {
+  if (typeof valor !== "string" || valor.trim() === "") {
+    return valorPredeterminado;
+  }
+
+  return valor.trim();
+}
+
+function contarValoresUnicos(registros, propiedad) {
+  const valores = registros
+    .map((registro) => obtenerTexto(registro[propiedad], ""))
+    .filter((valor) => valor !== "")
+    .map((valor) => valor.toLowerCase());
+
+  return new Set(valores).size;
+}
+
+function obtenerFechaActual() {
+  const fecha = new Intl.DateTimeFormat("es-MX", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date());
+
+  return fecha.charAt(0).toUpperCase() + fecha.slice(1);
+}
 
 function PanelPrincipal() {
+  const [talleres, setTalleres] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState("");
+
+  const cargarTalleres = useCallback(async () => {
+    try {
+      setCargando(true);
+      setError("");
+
+      const respuesta = await fetch(API_TALLERES);
+
+      if (!respuesta.ok) {
+        throw new Error(
+          `No se pudieron obtener los talleres. Código: ${respuesta.status}`,
+        );
+      }
+
+      const datos = await respuesta.json();
+
+      setTalleres(Array.isArray(datos) ? datos : []);
+    } catch (errorPeticion) {
+      console.error(
+        "Error al cargar la información del panel:",
+        errorPeticion,
+      );
+
+      setTalleres([]);
+      setError(
+        "No fue posible obtener la información desde la API.",
+      );
+    } finally {
+      setCargando(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    cargarTalleres();
+  }, [cargarTalleres]);
+
+  const totalTalleres = talleres.length;
+
+  const totalResponsables = useMemo(() => {
+    return contarValoresUnicos(talleres, "responsable");
+  }, [talleres]);
+
+  const totalEspecialidades = useMemo(() => {
+    return contarValoresUnicos(talleres, "especialidad");
+  }, [talleres]);
+
+  /*
+   * Permanece en cero porque todavía no existe
+   * una API para solicitudes de registro.
+   */
+  const solicitudesPorValidar = 0;
+
+  const talleresRecientes = useMemo(() => {
+    return [...talleres]
+      .sort((tallerA, tallerB) => {
+        const idA = Number(tallerA.id);
+        const idB = Number(tallerB.id);
+
+        if (Number.isNaN(idA) || Number.isNaN(idB)) {
+          return 0;
+        }
+
+        return idB - idA;
+      })
+      .slice(0, 4);
+  }, [talleres]);
+
+  const talleresPorUbicacion = useMemo(() => {
+    const conteo = new Map();
+
+    talleres.forEach((taller) => {
+      const ubicacion = obtenerTexto(
+        taller.ubicacion,
+        "Sin ubicación",
+      );
+
+      conteo.set(
+        ubicacion,
+        (conteo.get(ubicacion) || 0) + 1,
+      );
+    });
+
+    const ubicacionesOrdenadas = Array.from(conteo.entries())
+      .map(([ubicacion, cantidad]) => ({
+        ubicacion,
+        cantidad,
+      }))
+      .sort(
+        (ubicacionA, ubicacionB) =>
+          ubicacionB.cantidad - ubicacionA.cantidad,
+      )
+      .slice(0, 5);
+
+    const cantidadMayor =
+      ubicacionesOrdenadas[0]?.cantidad || 1;
+
+    return ubicacionesOrdenadas.map(
+      (ubicacion, indice) => ({
+        ...ubicacion,
+        porcentaje:
+          (ubicacion.cantidad / cantidadMayor) * 100,
+        clase:
+          clasesBarras[indice % clasesBarras.length],
+      }),
+    );
+  }, [talleres]);
+
   return (
     <>
       <section className="encabezado-panel">
         <h2>Panel operativo</h2>
-        <p>Miércoles 22 de julio · Valles Centrales</p>
+
+        <p>
+          {obtenerFechaActual()} · Información general
+        </p>
+
         <div className="detalle-artesanal" />
       </section>
 
       <section className="tarjetas-indicadores">
         <article className="tarjeta-indicador tarjeta-roja">
           <div className="titulo-indicador">
-            <Users size={19} />
-            <span>Solicitudes por validar</span>
+            <Building2 size={19} />
+            <span>Total de talleres</span>
           </div>
 
-          <strong className="valor-indicador">12</strong>
+          <strong className="valor-indicador">
+            {cargando ? "..." : totalTalleres}
+          </strong>
 
-          <p className="mensaje-alerta">
-            <span>△</span> 3 llevan más de 5 días
+          <p>
+            {error
+              ? "Información no disponible"
+              : "registrados en la API"}
           </p>
         </article>
 
         <article className="tarjeta-indicador tarjeta-verde">
           <div className="titulo-indicador">
-            <CalendarDays size={19} />
-            <span>Sesiones esta semana</span>
+            <Users size={19} />
+            <span>Responsables registrados</span>
           </div>
 
-          <strong className="valor-indicador">38</strong>
-          <p>en 14 comunidades</p>
+          <strong className="valor-indicador">
+            {cargando ? "..." : totalResponsables}
+          </strong>
+
+          <p>responsables diferentes</p>
         </article>
 
         <article className="tarjeta-indicador tarjeta-azul">
           <div className="titulo-indicador">
             <BarChart3 size={19} />
-            <span>Ocupación promedio</span>
+            <span>Especialidades</span>
           </div>
 
-          <strong className="valor-indicador">72%</strong>
-          <p className="mensaje-positivo">
-            ↗ +6 pts vs. semana pasada
-          </p>
+          <strong className="valor-indicador">
+            {cargando ? "..." : totalEspecialidades}
+          </strong>
+
+          <p>especialidades registradas</p>
         </article>
 
         <article className="tarjeta-indicador tarjeta-amarilla">
           <div className="titulo-indicador">
-            <CircleDollarSign size={19} />
-            <span>Por liquidar</span>
+            <ShieldCheck size={19} />
+            <span>Solicitudes por validar</span>
           </div>
 
-          <strong className="valor-indicador valor-dinero">
-            $184,500
+          <strong className="valor-indicador">
+            {solicitudesPorValidar}
           </strong>
 
           <p className="mensaje-secundario">
-            <Clock3 size={15} />
-            corte del viernes
+            Módulo todavía no conectado
           </p>
         </article>
       </section>
@@ -201,38 +295,111 @@ function PanelPrincipal() {
       <section className="zona-inferior">
         <article className="panel-tabla">
           <div className="encabezado-tarjeta">
-            <h3>Solicitudes recientes</h3>
-            <button type="button">Ver todas</button>
+            <h3>Talleres recientes</h3>
+
+            <NavLink
+              to="/talleres"
+              style={{
+                border: 0,
+                background: "transparent",
+                color: "#496453",
+                fontWeight: 700,
+                textDecoration: "none",
+              }}
+            >
+              Ver todos
+            </NavLink>
           </div>
 
           <div className="contenedor-tabla">
             <table>
               <thead>
                 <tr>
-                  <th>Folio</th>
-                  <th>Artesano</th>
-                  <th>Comunidad</th>
-                  <th>Técnica</th>
-                  <th>Estado</th>
+                  <th>ID</th>
+                  <th>Taller</th>
+                  <th>Responsable</th>
+                  <th>Especialidad</th>
+                  <th>Ubicación</th>
                 </tr>
               </thead>
 
               <tbody>
-                {solicitudes.map((solicitud) => (
-                  <tr key={solicitud.folio}>
-                    <td className="folio">{solicitud.folio}</td>
-                    <td>{solicitud.artesano}</td>
-                    <td>{solicitud.comunidad}</td>
-                    <td>{solicitud.tecnica}</td>
-                    <td>
-                      <span
-                        className={`estado estado-${solicitud.clase}`}
-                      >
-                        {solicitud.estado}
-                      </span>
+                {cargando && (
+                  <tr>
+                    <td colSpan="5">
+                      Cargando información...
                     </td>
                   </tr>
-                ))}
+                )}
+
+                {!cargando && error && (
+                  <tr>
+                    <td colSpan="5">
+                      <button
+                        type="button"
+                        onClick={cargarTalleres}
+                        style={{
+                          border: 0,
+                          background: "transparent",
+                          color: "#a72f42",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                        }}
+                      >
+                        No fue posible cargar los datos.
+                        Intentar nuevamente
+                      </button>
+                    </td>
+                  </tr>
+                )}
+
+                {!cargando &&
+                  !error &&
+                  talleresRecientes.length === 0 && (
+                    <tr>
+                      <td colSpan="5">
+                        No hay talleres registrados.
+                      </td>
+                    </tr>
+                  )}
+
+                {!cargando &&
+                  !error &&
+                  talleresRecientes.map((taller) => (
+                    <tr key={taller.id}>
+                      <td className="folio">
+                        {String(taller.id).padStart(3, "0")}
+                      </td>
+
+                      <td>
+                        {obtenerTexto(
+                          taller.nombreTaller,
+                          "Sin nombre",
+                        )}
+                      </td>
+
+                      <td>
+                        {obtenerTexto(
+                          taller.responsable,
+                          "Sin responsable",
+                        )}
+                      </td>
+
+                      <td>
+                        {obtenerTexto(
+                          taller.especialidad,
+                          "Sin especialidad",
+                        )}
+                      </td>
+
+                      <td>
+                        {obtenerTexto(
+                          taller.ubicacion,
+                          "Sin ubicación",
+                        )}
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
@@ -241,34 +408,92 @@ function PanelPrincipal() {
         <article className="panel-ingresos">
           <div className="encabezado-ingresos">
             <div>
-              <h3>Ingreso distribuido por comunidad</h3>
-              <p>Periodo actual</p>
+              <h3>
+                Talleres distribuidos por ubicación
+              </h3>
+
+              <p>Información actual de la API</p>
             </div>
 
             <ShieldCheck size={22} />
           </div>
 
           <div className="lista-ingresos">
-            {ingresos.map((ingreso) => (
-              <div className="ingreso" key={ingreso.comunidad}>
+            {cargando && (
+              <div className="ingreso">
                 <div className="datos-ingreso">
-                  <span>{ingreso.comunidad}</span>
-                  <strong>{ingreso.cantidad}</strong>
+                  <span>Cargando ubicaciones...</span>
+                </div>
+              </div>
+            )}
+
+            {!cargando && error && (
+              <div className="ingreso">
+                <div className="datos-ingreso">
+                  <span>Información no disponible</span>
+                  <strong>0</strong>
                 </div>
 
                 <div className="barra-ingreso">
-                  <span
-                    className={ingreso.clase}
-                    style={{ width: `${ingreso.porcentaje}%` }}
-                  />
+                  <span style={{ width: "0%" }} />
                 </div>
               </div>
-            ))}
+            )}
+
+            {!cargando &&
+              !error &&
+              talleresPorUbicacion.length === 0 && (
+                <div className="ingreso">
+                  <div className="datos-ingreso">
+                    <span>
+                      No hay ubicaciones registradas
+                    </span>
+
+                    <strong>0</strong>
+                  </div>
+
+                  <div className="barra-ingreso">
+                    <span style={{ width: "0%" }} />
+                  </div>
+                </div>
+              )}
+
+            {!cargando &&
+              !error &&
+              talleresPorUbicacion.map((ubicacion) => (
+                <div
+                  className="ingreso"
+                  key={ubicacion.ubicacion}
+                >
+                  <div className="datos-ingreso">
+                    <span>{ubicacion.ubicacion}</span>
+
+                    <strong>
+                      {ubicacion.cantidad}{" "}
+                      {ubicacion.cantidad === 1
+                        ? "taller"
+                        : "talleres"}
+                    </strong>
+                  </div>
+
+                  <div className="barra-ingreso">
+                    <span
+                      className={ubicacion.clase}
+                      style={{
+                        width: `${ubicacion.porcentaje}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
           </div>
 
           <div className="pie-ingresos">
             <Star size={17} />
-            Información actualizada
+
+            {error
+              ? "Información no disponible"
+              : "Información obtenida desde la API"}
           </div>
         </article>
       </section>
@@ -283,13 +508,17 @@ function App() {
         <header className="barra-superior">
           <div className="marca">
             <div className="logo-marca">MO</div>
+
             <h1>Manos de Oaxaca</h1>
           </div>
 
           <div className="acciones-superiores">
-            <button className="selector-region" type="button">
+            <button
+              className="selector-region"
+              type="button"
+            >
               <MapPin size={21} />
-              <span>Valles Centrales</span>
+              <span>Todas las ubicaciones</span>
               <ChevronDown size={17} />
             </button>
 
@@ -316,11 +545,11 @@ function App() {
 
             <div className="perfil">
               <div className="perfil-texto">
-                <strong>Rocío Mendoza</strong>
-                <span>Validadora</span>
+                <strong>Sin iniciar sesión</strong>
+                <span>Rol no disponible</span>
               </div>
 
-              <div className="avatar">RM</div>
+              <div className="avatar">MO</div>
             </div>
           </div>
         </header>
@@ -331,7 +560,11 @@ function App() {
               to="/"
               end
               className={({ isActive }) =>
-                `opcion-panel ${isActive ? "opcion-panel-activa" : ""}`
+                `opcion-panel ${
+                  isActive
+                    ? "opcion-panel-activa"
+                    : ""
+                }`
               }
             >
               <Grid2X2 size={20} />
@@ -352,7 +585,9 @@ function App() {
                         to={opcion.ruta}
                         className={({ isActive }) =>
                           `opcion-menu ${
-                            isActive ? "opcion-menu-activa" : ""
+                            isActive
+                              ? "opcion-menu-activa"
+                              : ""
                           }`
                         }
                         key={opcion.nombre}
@@ -376,8 +611,20 @@ function App() {
 
           <main className="contenido">
             <Routes>
-              <Route path="/" element={<PanelPrincipal />} />
-              <Route path="/talleres" element={<Talleres />} />
+              <Route
+                path="/"
+                element={<PanelPrincipal />}
+              />
+
+              <Route
+                path="/talleres"
+                element={<Talleres />}
+              />
+
+              <Route
+                path="/talleres/nuevo"
+                element={<RegistrarTaller />}
+              />
             </Routes>
           </main>
         </div>

@@ -291,3 +291,87 @@
     padding: 14px;
   }
 }
+
+.acciones-encabezado-talleres {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.boton-registrar-taller {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 19px;
+  border: 1px solid var(--verde-oscuro, #3c5547);
+  border-radius: 10px;
+  background: var(--verde-oscuro, #3c5547);
+  color: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.boton-registrar-taller:hover {
+  background: #30483b;
+}
+
+@media (max-width: 720px) {
+  .acciones-encabezado-talleres {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .boton-registrar-taller,
+  .boton-actualizar {
+    width: 100%;
+  }
+}
+
+.acciones-encabezado-talleres {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.boton-registrar-taller {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 19px;
+  border: 1px solid var(--verde-oscuro, #3c5547);
+  border-radius: 10px;
+  background: var(--verde-oscuro, #3c5547);
+  color: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.boton-registrar-taller:hover {
+  background: #30483b;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 720px) {
+  .encabezado-talleres {
+    flex-direction: column;
+  }
+
+  .acciones-encabezado-talleres {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .boton-registrar-taller,
+  .boton-actualizar {
+    width: 100%;
+  }
+}
