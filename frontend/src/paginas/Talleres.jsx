@@ -6,6 +6,7 @@ import {
   Building2,
   LoaderCircle,
   MapPin,
+  Pencil,
   Plus,
   RefreshCw,
 } from "lucide-react";
@@ -157,8 +158,8 @@ function Talleres() {
               <h4>No hay talleres registrados</h4>
 
               <p>
-                Los talleres aparecerán aquí cuando
-                se registren en la API.
+                Los talleres aparecerán aquí cuando se
+                registren en la API.
               </p>
             </div>
           )}
@@ -176,6 +177,7 @@ function Talleres() {
                     <th>Especialidad</th>
                     <th>Ubicación</th>
                     <th>Reseña</th>
+                    <th>Acciones</th>
                   </tr>
                 </thead>
 
@@ -237,6 +239,21 @@ function Talleres() {
                         </td>
 
                         <td>{resenia}</td>
+
+                        <td>
+                          <button
+                            className="boton-editar-taller"
+                            type="button"
+                            onClick={() =>
+                              navigate(
+                                `/talleres/editar/${taller.id}`,
+                              )
+                            }
+                          >
+                            <Pencil size={16} />
+                            <span>Editar</span>
+                          </button>
+                        </td>
                       </tr>
                     );
                   })}

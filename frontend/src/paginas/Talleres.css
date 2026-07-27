@@ -375,3 +375,31 @@
     width: 100%;
   }
 }
+
+.boton-editar-taller {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--verde-oscuro, #3c5547);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--verde-oscuro, #3c5547);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.boton-editar-taller:hover {
+  background: var(--verde-oscuro, #3c5547);
+  color: #ffffff;
+  transform: translateY(-1px);
+}

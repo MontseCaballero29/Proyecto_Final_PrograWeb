@@ -22,6 +22,7 @@ import {
 
 import Talleres from "./paginas/Talleres";
 import RegistrarTaller from "./paginas/RegistrarTaller";
+import EditarTaller from "./paginas/EditarTaller";
 
 import "./App.css";
 
@@ -610,22 +611,30 @@ function App() {
           </aside>
 
           <main className="contenido">
+
             <Routes>
-              <Route
-                path="/"
-                element={<PanelPrincipal />}
-              />
+  <Route
+    path="/"
+    element={<PanelPrincipal />}
+  />
 
-              <Route
-                path="/talleres"
-                element={<Talleres />}
-              />
+  <Route
+    path="/talleres"
+    element={<Talleres />}
+  />
 
-              <Route
-                path="/talleres/nuevo"
-                element={<RegistrarTaller />}
-              />
-            </Routes>
+  <Route
+    path="/talleres/nuevo"
+    element={<RegistrarTaller />}
+  />
+
+  <Route
+    path="/talleres/editar/:id"
+    element={<EditarTaller />}
+  />
+</Routes>
+
+
           </main>
         </div>
       </div>
