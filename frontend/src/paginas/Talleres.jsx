@@ -15,8 +15,7 @@ import {
 
 import "./Talleres.css";
 
-const API_TALLERES =
-  "https://6a545ff38547b9f7111c26d6.mockapi.io/talleres";
+const API_TALLERES = "http://localhost:8090/api/talleres";
 
 function Talleres() {
   const navigate = useNavigate();
@@ -34,22 +33,35 @@ function Talleres() {
       setCargando(true);
       setError("");
 
-      const url = new URL(API_TALLERES);
+      const token = localStorage.getItem("token");
 
-      /*
-       * El filtro se manda a la API como parámetro.
-       * En MockAPI el campo disponible se llama "ubicacion".
-       */
-      if (municipioAplicado.trim()) {
-        url.searchParams.set(
-          "ubicacion",
-          municipioAplicado.trim(),
+      if (!token) {
+        throw new Error(
+          "No se encontró una sesión iniciada. Inicia sesión nuevamente.",
         );
       }
 
-      const respuesta = await fetch(url.toString());
+      const respuesta = await fetch(API_TALLERES, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (!respuesta.ok) {
+        if (respuesta.status === 401) {
+          throw new Error(
+            "Tu sesión no es válida o ha expirado. Inicia sesión nuevamente.",
+          );
+        }
+
+        if (respuesta.status === 403) {
+          throw new Error(
+            "No tienes permiso para consultar los talleres.",
+          );
+        }
+
         throw new Error(
           `No se pudieron obtener los talleres. Código: ${respuesta.status}`,
         );
@@ -57,7 +69,23 @@ function Talleres() {
 
       const datos = await respuesta.json();
 
-      setTalleres(Array.isArray(datos) ? datos : []);
+      const listaTalleres = Array.isArray(datos)
+        ? datos
+        : [];
+
+      const textoMunicipio = municipioAplicado
+        .trim()
+        .toLowerCase();
+
+      const talleresFiltrados = textoMunicipio
+        ? listaTalleres.filter((taller) =>
+            taller.municipio
+              ?.toLowerCase()
+              .includes(textoMunicipio),
+          )
+        : listaTalleres;
+
+      setTalleres(talleresFiltrados);
     } catch (errorPeticion) {
       console.error(
         "Error al consultar los talleres:",
@@ -65,7 +93,8 @@ function Talleres() {
       );
 
       setError(
-        "No fue posible obtener los talleres desde la API. Intenta nuevamente.",
+        errorPeticion.message ||
+          "No fue posible obtener los talleres desde la API.",
       );
 
       setTalleres([]);
@@ -80,7 +109,6 @@ function Talleres() {
 
   const aplicarFiltro = (evento) => {
     evento.preventDefault();
-
     setMunicipioAplicado(municipio.trim());
   };
 
@@ -100,7 +128,8 @@ function Talleres() {
           <h2>Talleres artesanales</h2>
 
           <p className="descripcion-talleres">
-            Consulta los talleres registrados y su información.
+            Consulta los talleres registrados y su
+            información.
           </p>
         </div>
 
@@ -258,7 +287,7 @@ function Talleres() {
 
               <p>
                 {municipioAplicado
-                  ? `No existen talleres registrados con la ubicación "${municipioAplicado}".`
+                  ? `No existen talleres registrados en el municipio "${municipioAplicado}".`
                   : "Los talleres aparecerán aquí cuando se registren en la API."}
               </p>
 
@@ -285,7 +314,7 @@ function Talleres() {
                     <th>Responsable</th>
                     <th>Especialidad</th>
                     <th>Ubicación</th>
-                    <th>Reseña</th>
+                    <th>Descripción</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
@@ -293,33 +322,75 @@ function Talleres() {
                 <tbody>
                   {talleres.map((taller) => {
                     const nombre =
-                      taller.nombreTaller?.trim() ||
+                      taller.nombre?.trim() ||
                       "Sin nombre";
 
                     const responsable =
-                      taller.responsable?.trim() ||
-                      "Sin responsable";
+                      Array.isArray(
+                        taller.artesanos,
+                      ) &&
+                      taller.artesanos.length > 0
+                        ? taller.artesanos
+                            .map((artesano) => {
+                              const usuario =
+                                artesano.usuario;
+
+                              return (
+                                usuario?.nombreCompleto ||
+                                usuario?.nombre ||
+                                artesano.nombre ||
+                                `Artesano ${artesano.id}`
+                              );
+                            })
+                            .filter(Boolean)
+                            .join(", ")
+                        : "Sin artesanos asignados";
 
                     const especialidad =
-                      taller.especialidad?.trim() ||
-                      "Sin especialidad";
+                      Array.isArray(
+                        taller.artesanos,
+                      ) &&
+                      taller.artesanos.length > 0
+                        ? [
+                            ...new Set(
+                              taller.artesanos
+                                .flatMap(
+                                  (artesano) =>
+                                    artesano.especialidades ||
+                                    [],
+                                )
+                                .map(
+                                  (
+                                    especialidadActual,
+                                  ) =>
+                                    especialidadActual.nombre,
+                                )
+                                .filter(Boolean),
+                            ),
+                          ].join(", ") ||
+                          "Sin especialidad"
+                        : "Sin especialidad";
 
                     const ubicacion =
-                      taller.ubicacion?.trim() ||
+                      [
+                        taller.direccion,
+                        taller.comunidad?.nombre,
+                        taller.municipio,
+                      ]
+                        .filter(Boolean)
+                        .join(", ") ||
                       "Sin ubicación";
 
-                    const resenia =
-                      taller.resenia ??
-                      taller.reseña ??
-                      "Sin reseña";
+                    const descripcion =
+                      taller.descripcion?.trim() ||
+                      "Sin descripción";
 
                     return (
                       <tr key={taller.id}>
                         <td className="identificador-taller">
-                          {String(taller.id).padStart(
-                            3,
-                            "0",
-                          )}
+                          {String(
+                            taller.id,
+                          ).padStart(3, "0")}
                         </td>
 
                         <td>
@@ -331,7 +402,9 @@ function Talleres() {
                             </div>
 
                             <div>
-                              <strong>{nombre}</strong>
+                              <strong>
+                                {nombre}
+                              </strong>
                             </div>
                           </div>
                         </td>
@@ -347,7 +420,7 @@ function Talleres() {
                           </span>
                         </td>
 
-                        <td>{resenia}</td>
+                        <td>{descripcion}</td>
 
                         <td>
                           <button

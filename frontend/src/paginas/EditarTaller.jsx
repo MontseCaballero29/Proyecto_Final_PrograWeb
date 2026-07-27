@@ -12,8 +12,7 @@ import {
 
 import "./EditarTaller.css";
 
-const API_TALLERES =
-  "https://6a545ff38547b9f7111c26d6.mockapi.io/talleres";
+const API_TALLERES = "http://localhost:8090/api/talleres";
 
 const FORMULARIO_INICIAL = {
   nombreTaller: "",
