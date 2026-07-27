@@ -103,6 +103,20 @@ public class ArtesanoServicio {
         artesanoRepositorio.deleteById(id);
     }
 
+    public Page<ArtesanoRespuesta> buscarConFiltros(Long comunidadId, String estadoValidacion, Pageable pageable) {
+        Page<Artesano> resultado;
+
+        if (comunidadId != null) {
+            resultado = artesanoRepositorio.findByComunidadId(comunidadId, pageable);
+        } else if (estadoValidacion != null && !estadoValidacion.isBlank()) {
+            resultado = artesanoRepositorio.findByEstadoValidacion(estadoValidacion, pageable);
+        } else {
+            resultado = artesanoRepositorio.findAll(pageable);
+        }
+
+        return resultado.map(this::convertirAResponse);
+    }
+
     private ArtesanoRespuesta convertirAResponse(Artesano artesano) {
         ArtesanoRespuesta dto = new ArtesanoRespuesta();
         dto.setId(artesano.getId());

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.manosdeoaxaca.backend.dto.ArtesanoPeticion;
@@ -33,8 +34,11 @@ public class ArtesanoControlador {
 
     @GetMapping
     public ResponseEntity<Page<ArtesanoRespuesta>> listar(
+            @RequestParam(required = false) Long comunidadId,
+            @RequestParam(required = false) String estadoValidacion,
             @PageableDefault(size = 10) Pageable pageable) {
-        return ResponseEntity.ok(artesanoServicio.listar(pageable));
+        return ResponseEntity.ok(
+                artesanoServicio.buscarConFiltros(comunidadId, estadoValidacion, pageable));
     }
 
     @GetMapping("/{id}")
