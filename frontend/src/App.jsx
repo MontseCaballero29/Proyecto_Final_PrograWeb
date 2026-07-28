@@ -676,6 +676,14 @@ function RutaProtegida() {
   return <Outlet />;
 }
 
+function RutaSoloAdmin() {
+  if (localStorage.getItem("rol") !== "ADMIN") {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -683,18 +691,29 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Registro />} />
         <Route element={<RutaProtegida />}>
-        <Route element={<Layout />}>
-          <Route path="/" element={<PanelPrincipal />} />
-          <Route path="/artesanos" element={<Artesanos />} />
+          <Route element={<Layout />}>
+            <Route path="/" element={<PanelPrincipal />} />
+            <Route path="/artesanos" element={<Artesanos />} />
           <Route path="/talleres" element={<Talleres />} />
-          <Route path="/talleres/nuevo" element={<RegistrarTaller />} />
-          <Route path="/talleres/editar/:id" element={<EditarTaller />} />
-          <Route path="/artesanias" element={<Artesanias />} />
-          <Route
-            path="/artesanias/editar/:id"
-            element={<EditarArtesania />}
-          />
-        </Route>
+            <Route
+              path="/artesanias"
+              element={<Artesanias />}
+            />
+            <Route element={<RutaSoloAdmin />}>
+              <Route
+                path="/talleres/nuevo"
+                element={<RegistrarTaller />}
+              />
+              <Route
+                path="/talleres/editar/:id"
+                element={<EditarTaller />}
+              />
+              <Route
+                path="/artesanias/editar/:id"
+                element={<EditarArtesania />}
+              />
+            </Route>
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

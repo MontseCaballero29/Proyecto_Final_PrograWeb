@@ -151,6 +151,7 @@
 }
 
 .grupo-campo-editar input,
+.grupo-campo-editar select,
 .grupo-campo-editar textarea {
   width: 100%;
   border: 1px solid var(--borde, #ddd6c9);
@@ -164,7 +165,8 @@
     box-shadow 0.2s ease;
 }
 
-.grupo-campo-editar input {
+.grupo-campo-editar input,
+.grupo-campo-editar select {
   min-height: 48px;
   padding: 0 14px;
 }
@@ -177,12 +179,14 @@
 }
 
 .grupo-campo-editar input:focus,
+.grupo-campo-editar select:focus,
 .grupo-campo-editar textarea:focus {
   border-color: var(--verde-oscuro, #3c5547);
   box-shadow: 0 0 0 3px rgba(60, 85, 71, 0.13);
 }
 
 .grupo-campo-editar input:disabled,
+.grupo-campo-editar select:disabled,
 .grupo-campo-editar textarea:disabled {
   cursor: not-allowed;
   background: #f5f4f0;
@@ -216,6 +220,76 @@
   justify-content: space-between;
   gap: 16px;
   color: var(--texto-suave, #696b66);
+}
+
+.selector-artesanos {
+  min-width: 0;
+  margin: 0;
+  padding: 18px;
+  border: 1px solid var(--borde, #ddd6c9);
+  border-radius: 10px;
+}
+
+.selector-artesanos legend {
+  padding: 0 7px;
+  color: var(--texto, #282620);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.selector-artesanos > p {
+  margin: 0 0 14px;
+  color: var(--texto-suave, #696b66);
+  font-size: 14px;
+}
+
+.lista-selector-artesanos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.opcion-artesano {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #e2ddd3;
+  border-radius: 9px;
+  background: #faf9f6;
+  cursor: pointer;
+}
+
+.opcion-artesano:has(input:checked) {
+  border-color: var(--verde-oscuro, #3c5547);
+  background: #edf2ee;
+}
+
+.opcion-artesano input {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  accent-color: var(--verde-oscuro, #3c5547);
+}
+
+.opcion-artesano span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.opcion-artesano strong {
+  color: var(--texto, #282620);
+  font-size: 14px;
+}
+
+.opcion-artesano small {
+  color: var(--texto-suave, #696b66);
+  font-size: 12px;
 }
 
 .acciones-editar-taller {
@@ -281,6 +355,10 @@
   }
 
   .cuadricula-editar-taller {
+    grid-template-columns: 1fr;
+  }
+
+  .lista-selector-artesanos {
     grid-template-columns: 1fr;
   }
 

@@ -19,6 +19,8 @@ const API_TALLERES = "http://localhost:8090/api/talleres";
 
 function Talleres() {
   const navigate = useNavigate();
+  const esAdmin =
+    localStorage.getItem("rol") === "ADMIN";
 
   const [talleres, setTalleres] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -134,14 +136,16 @@ function Talleres() {
         </div>
 
         <div className="acciones-encabezado-talleres">
-          <button
-            className="boton-registrar-taller"
-            type="button"
-            onClick={() => navigate("/talleres/nuevo")}
-          >
-            <Plus size={18} />
-            <span>Registrar taller</span>
-          </button>
+          {esAdmin && (
+            <button
+              className="boton-registrar-taller"
+              type="button"
+              onClick={() => navigate("/talleres/nuevo")}
+            >
+              <Plus size={18} />
+              <span>Registrar taller</span>
+            </button>
+          )}
 
           <button
             className="boton-actualizar"
@@ -315,7 +319,7 @@ function Talleres() {
                     <th>Especialidad</th>
                     <th>Ubicación</th>
                     <th>Descripción</th>
-                    <th>Acciones</th>
+                    {esAdmin && <th>Acciones</th>}
                   </tr>
                 </thead>
 
@@ -326,55 +330,23 @@ function Talleres() {
                       "Sin nombre";
 
                     const responsable =
-                      Array.isArray(
-                        taller.artesanos,
-                      ) &&
+                      Array.isArray(taller.artesanos) &&
                       taller.artesanos.length > 0
-                        ? taller.artesanos
-                            .map((artesano) => {
-                              const usuario =
-                                artesano.usuario;
-
-                              return (
-                                usuario?.nombreCompleto ||
-                                usuario?.nombre ||
-                                artesano.nombre ||
-                                `Artesano ${artesano.id}`
-                              );
-                            })
-                            .filter(Boolean)
-                            .join(", ")
+                        ? taller.artesanos.join(", ")
                         : "Sin artesanos asignados";
 
                     const especialidad =
                       Array.isArray(
-                        taller.artesanos,
+                        taller.especialidades,
                       ) &&
-                      taller.artesanos.length > 0
-                        ? [
-                            ...new Set(
-                              taller.artesanos
-                                .flatMap(
-                                  (artesano) =>
-                                    artesano.especialidades ||
-                                    [],
-                                )
-                                .map(
-                                  (
-                                    especialidadActual,
-                                  ) =>
-                                    especialidadActual.nombre,
-                                )
-                                .filter(Boolean),
-                            ),
-                          ].join(", ") ||
-                          "Sin especialidad"
+                      taller.especialidades.length > 0
+                        ? taller.especialidades.join(", ")
                         : "Sin especialidad";
 
                     const ubicacion =
                       [
                         taller.direccion,
-                        taller.comunidad?.nombre,
+                        taller.comunidad,
                         taller.municipio,
                       ]
                         .filter(Boolean)
@@ -422,20 +394,22 @@ function Talleres() {
 
                         <td>{descripcion}</td>
 
-                        <td>
-                          <button
-                            className="boton-editar-taller"
-                            type="button"
-                            onClick={() =>
-                              navigate(
-                                `/talleres/editar/${taller.id}`,
-                              )
-                            }
-                          >
-                            <Pencil size={16} />
-                            <span>Editar</span>
-                          </button>
-                        </td>
+                        {esAdmin && (
+                          <td>
+                            <button
+                              className="boton-editar-taller"
+                              type="button"
+                              onClick={() =>
+                                navigate(
+                                  `/talleres/editar/${taller.id}`,
+                                )
+                              }
+                            >
+                              <Pencil size={16} />
+                              <span>Editar</span>
+                            </button>
+                          </td>
+                        )}
                       </tr>
                     );
                   })}
