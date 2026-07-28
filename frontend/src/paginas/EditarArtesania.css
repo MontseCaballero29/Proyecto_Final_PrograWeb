@@ -1,0 +1,367 @@
+.pagina-editar-artesania {
+  width: 100%;
+}
+
+.encabezado-editar-artesania {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.ruta-editar-artesania {
+  margin: 0 0 12px;
+  color: #7a817c;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.encabezado-editar-artesania h2 {
+  margin: 0;
+  color: var(--texto, #282620);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 42px;
+  line-height: 1.1;
+}
+
+.descripcion-editar-artesania {
+  margin: 12px 0 0;
+  color: var(--texto-suave, #696b66);
+  font-size: 17px;
+}
+
+.boton-volver-artesanias {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 0 18px;
+  border: 1px solid var(--borde, #ddd6c9);
+  border-radius: 10px;
+  background: var(--blanco, #fff);
+  color: var(--verde-oscuro, #3c5547);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.boton-volver-artesanias:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.mensaje-edicion-artesania {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin-top: 22px;
+  padding: 15px 18px;
+  border: 1px solid;
+  border-radius: 11px;
+}
+
+.mensaje-edicion-artesania p {
+  margin: 0;
+}
+
+.mensaje-edicion-exito {
+  border-color: #a9cbb6;
+  background: #edf7f0;
+  color: #315c40;
+}
+
+.mensaje-edicion-error {
+  border-color: #e2aaa6;
+  background: #fff1ef;
+  color: #9c3029;
+}
+
+.tarjeta-editar-artesania {
+  max-width: 980px;
+  margin-top: 28px;
+  overflow: hidden;
+  border: 1px solid var(--borde, #ddd6c9);
+  border-radius: 14px;
+  background: var(--blanco, #fff);
+  box-shadow: 0 2px 7px rgba(40, 38, 32, 0.08);
+}
+
+.titulo-formulario-artesania {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 25px 28px;
+  border-bottom: 1px solid var(--borde, #ddd6c9);
+}
+
+.icono-formulario-artesania {
+  width: 50px;
+  height: 50px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 12px;
+  background: #e8efea;
+  color: var(--verde-oscuro, #3c5547);
+}
+
+.titulo-formulario-artesania h3 {
+  margin: 0;
+  color: var(--texto, #282620);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 27px;
+}
+
+.titulo-formulario-artesania p {
+  margin: 5px 0 0;
+  color: var(--texto-suave, #696b66);
+  font-size: 14px;
+}
+
+.formulario-editar-artesania {
+  padding: 28px;
+}
+
+.cuadricula-editar-artesania {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.grupo-campo-artesania {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.campo-artesania-ancho {
+  grid-column: 1 / -1;
+}
+
+.grupo-campo-artesania label {
+  color: var(--texto, #282620);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.grupo-campo-artesania label span {
+  color: var(--rojo, #a72f42);
+}
+
+.grupo-campo-artesania input,
+.grupo-campo-artesania select,
+.grupo-campo-artesania textarea {
+  width: 100%;
+  border: 1px solid var(--borde, #ddd6c9);
+  border-radius: 9px;
+  outline: none;
+  background: #fff;
+  color: var(--texto, #282620);
+  font: inherit;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.grupo-campo-artesania input,
+.grupo-campo-artesania select {
+  min-height: 48px;
+  padding: 0 14px;
+}
+
+.grupo-campo-artesania textarea {
+  min-height: 135px;
+  padding: 13px 14px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.grupo-campo-artesania input:focus,
+.grupo-campo-artesania select:focus,
+.grupo-campo-artesania textarea:focus {
+  border-color: var(--verde-oscuro, #3c5547);
+  box-shadow: 0 0 0 3px rgba(60, 85, 71, 0.13);
+}
+
+.grupo-campo-artesania input:disabled,
+.grupo-campo-artesania select:disabled,
+.grupo-campo-artesania textarea:disabled {
+  cursor: not-allowed;
+  background: #f5f4f0;
+}
+
+.grupo-campo-artesania .campo-artesania-error {
+  border-color: #b64039;
+  background: #fffafa;
+}
+
+.texto-error-artesania {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #a43730;
+  font-size: 13px;
+}
+
+.entrada-imagen-artesania {
+  position: relative;
+}
+
+.entrada-imagen-artesania > svg {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  z-index: 1;
+  color: #7a817c;
+  transform: translateY(-50%);
+}
+
+.entrada-imagen-artesania input {
+  padding-left: 43px;
+}
+
+.pie-descripcion-artesania {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 18px;
+  color: var(--texto-suave, #696b66);
+}
+
+.acciones-formulario-artesania {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 30px;
+  padding-top: 22px;
+  border-top: 1px solid var(--borde, #ddd6c9);
+}
+
+.boton-cancelar-artesania,
+.boton-guardar-artesania {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 47px;
+  padding: 0 22px;
+  border-radius: 9px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.boton-cancelar-artesania {
+  border: 1px solid var(--borde, #ddd6c9);
+  background: #fff;
+  color: var(--texto, #282620);
+}
+
+.boton-guardar-artesania {
+  border: 1px solid var(--verde-oscuro, #3c5547);
+  background: var(--verde-oscuro, #3c5547);
+  color: #fff;
+}
+
+.boton-cancelar-artesania:disabled,
+.boton-guardar-artesania:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.estado-edicion-artesania {
+  min-height: 520px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #68706a;
+  text-align: center;
+}
+
+.estado-edicion-artesania h2,
+.estado-edicion-artesania p {
+  margin: 0;
+}
+
+.estado-edicion-artesania h2 {
+  color: var(--texto, #282620);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 30px;
+}
+
+.estado-edicion-artesania p {
+  max-width: 540px;
+  line-height: 1.5;
+}
+
+.estado-edicion-artesania button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 11px 16px;
+  border: 1px solid var(--borde, #ddd6c9);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--verde-oscuro, #3c5547);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.estado-edicion-error {
+  color: #a43730;
+}
+
+.estado-sin-permiso {
+  color: #866620;
+}
+
+.acciones-error-edicion {
+  display: flex;
+  gap: 10px;
+}
+
+@media (max-width: 800px) {
+  .encabezado-editar-artesania {
+    flex-direction: column;
+  }
+
+  .boton-volver-artesanias {
+    width: 100%;
+  }
+
+  .cuadricula-editar-artesania {
+    grid-template-columns: 1fr;
+  }
+
+  .campo-artesania-ancho {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 520px) {
+  .encabezado-editar-artesania h2 {
+    font-size: 34px;
+  }
+
+  .titulo-formulario-artesania,
+  .formulario-editar-artesania {
+    padding: 20px;
+  }
+
+  .acciones-formulario-artesania,
+  .acciones-error-edicion {
+    flex-direction: column;
+  }
+
+  .boton-cancelar-artesania,
+  .boton-guardar-artesania {
+    width: 100%;
+  }
+}

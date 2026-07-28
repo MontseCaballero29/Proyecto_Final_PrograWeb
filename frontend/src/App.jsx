@@ -29,6 +29,8 @@ import Registro from "./paginas/Registro";
 import Talleres from "./paginas/Talleres";
 import RegistrarTaller from "./paginas/RegistrarTaller";
 import EditarTaller from "./paginas/EditarTaller";
+import Artesanias from "./paginas/Artesanias";
+import EditarArtesania from "./paginas/EditarArtesania";
 
 import "./App.css";
 
@@ -54,8 +56,7 @@ function obtenerIniciales(correo) {
 }
 
 
-const API_TALLERES =
-  "https://6a545ff38547b9f7111c26d6.mockapi.io/talleres";
+const API_TALLERES = "http://localhost:8090/api/talleres";
 
 const seccionesMenu = [
   {
@@ -72,7 +73,7 @@ const seccionesMenu = [
       { nombre: "Artesanos" },
       { nombre: "Talleres", ruta: "/talleres" },
       { nombre: "Experiencias" },
-      { nombre: "Piezas" },
+      { nombre: "Artesanías", ruta: "/artesanias" },
       { nombre: "Taxonomías" },
     ],
   },
@@ -685,6 +686,11 @@ function App() {
           <Route path="/talleres" element={<Talleres />} />
           <Route path="/talleres/nuevo" element={<RegistrarTaller />} />
           <Route path="/talleres/editar/:id" element={<EditarTaller />} />
+          <Route path="/artesanias" element={<Artesanias />} />
+          <Route
+            path="/artesanias/editar/:id"
+            element={<EditarArtesania />}
+          />
         </Route>
         </Route>
       </Routes>

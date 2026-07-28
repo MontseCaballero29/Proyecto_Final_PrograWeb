@@ -1,0 +1,326 @@
+.pagina-artesanias {
+  width: 100%;
+}
+
+.encabezado-artesanias {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.ruta-artesanias {
+  margin: 0 0 12px;
+  color: #7a817c;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.encabezado-artesanias h2 {
+  margin: 0;
+  color: var(--texto, #282620);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 42px;
+  line-height: 1.1;
+}
+
+.descripcion-artesanias {
+  margin: 12px 0 0;
+  color: var(--texto-suave, #696b66);
+  font-size: 17px;
+}
+
+.boton-actualizar-artesanias {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 0 18px;
+  border: 1px solid var(--borde, #ddd6c9);
+  border-radius: 10px;
+  background: var(--blanco, #fff);
+  color: var(--verde-oscuro, #3c5547);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.boton-actualizar-artesanias:hover:not(:disabled) {
+  background: #f0f4f1;
+  transform: translateY(-1px);
+}
+
+.boton-actualizar-artesanias:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.resumen-artesanias {
+  width: min(260px, 100%);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: 25px;
+  padding: 18px 20px;
+  border: 1px solid var(--borde, #ddd6c9);
+  border-radius: 12px;
+  background: var(--blanco, #fff);
+  box-shadow: 0 2px 5px rgba(40, 38, 32, 0.06);
+}
+
+.icono-resumen-artesanias {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 11px;
+  background: #e8efea;
+  color: var(--verde-oscuro, #3c5547);
+}
+
+.resumen-artesanias div:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.resumen-artesanias span {
+  color: var(--texto-suave, #696b66);
+  font-size: 14px;
+}
+
+.resumen-artesanias strong {
+  color: var(--texto, #282620);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 29px;
+}
+
+.contenedor-artesanias {
+  margin-top: 24px;
+  overflow: hidden;
+  border: 1px solid var(--borde, #ddd6c9);
+  border-radius: 14px;
+  background: var(--blanco, #fff);
+  box-shadow: 0 2px 7px rgba(40, 38, 32, 0.07);
+}
+
+.titulo-listado-artesanias {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 23px 25px;
+  border-bottom: 1px solid var(--borde, #ddd6c9);
+}
+
+.titulo-listado-artesanias h3 {
+  margin: 0;
+  color: var(--texto, #282620);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 25px;
+}
+
+.titulo-listado-artesanias p {
+  margin: 6px 0 0;
+  color: var(--texto-suave, #696b66);
+  font-size: 14px;
+}
+
+.estado-artesanias {
+  min-height: 310px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 38px 22px;
+  color: #68706a;
+  text-align: center;
+}
+
+.estado-artesanias h4,
+.estado-artesanias p {
+  margin: 0;
+}
+
+.estado-artesanias h4 {
+  color: var(--texto, #282620);
+  font-size: 18px;
+}
+
+.estado-artesanias p {
+  max-width: 580px;
+  line-height: 1.5;
+}
+
+.estado-artesanias-error {
+  color: #a43730;
+}
+
+.estado-artesanias-error button {
+  margin-top: 7px;
+  padding: 10px 16px;
+  border: 1px solid #b64039;
+  border-radius: 8px;
+  background: #fff;
+  color: #a43730;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tabla-artesanias-contenedor {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.tabla-artesanias {
+  width: 100%;
+  min-width: 850px;
+  border-collapse: collapse;
+}
+
+.tabla-artesanias th,
+.tabla-artesanias td {
+  padding: 17px 20px;
+  border-bottom: 1px solid #ece7de;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.tabla-artesanias th {
+  background: #faf8f3;
+  color: #6d746f;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tabla-artesanias tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.tabla-artesanias tbody tr:hover {
+  background: #fdfcf8;
+}
+
+.pieza-artesania {
+  min-width: 310px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.imagen-artesania {
+  width: 58px;
+  height: 58px;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.imagen-artesania-vacia {
+  display: grid;
+  place-items: center;
+  border: 1px dashed #cfc6b8;
+  background: #f3efe7;
+  color: #8a8e89;
+}
+
+.pieza-artesania div:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pieza-artesania strong {
+  color: var(--texto, #282620);
+  font-size: 15px;
+}
+
+.pieza-artesania span {
+  max-width: 380px;
+  overflow: hidden;
+  color: var(--texto-suave, #696b66);
+  font-size: 13px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nombre-taller-artesania {
+  color: #4c554f;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.precio-artesania {
+  color: var(--texto, #282620);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.existencia-artesania {
+  display: inline-flex;
+  padding: 6px 10px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.existencia-disponible {
+  background: #e8f2eb;
+  color: #356044;
+}
+
+.existencia-baja {
+  background: #fff3d7;
+  color: #8a671c;
+}
+
+.existencia-agotada {
+  background: #fbe7e5;
+  color: #9b3832;
+}
+
+.boton-editar-artesania {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 12px;
+  border: 1px solid #cfd9d1;
+  border-radius: 8px;
+  background: #f5f8f6;
+  color: var(--verde-oscuro, #3c5547);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.boton-editar-artesania:hover {
+  border-color: var(--verde-oscuro, #3c5547);
+  background: #eaf0ec;
+}
+
+@media (max-width: 760px) {
+  .encabezado-artesanias {
+    flex-direction: column;
+  }
+
+  .encabezado-artesanias h2 {
+    font-size: 35px;
+  }
+
+  .boton-actualizar-artesanias {
+    width: 100%;
+  }
+}
