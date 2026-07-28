@@ -15,6 +15,7 @@ public class TallerRespuesta {
 
     private Set<Long> artesanoIds;
     private Set<String> artesanos;
+    private Set<String> especialidades;
 
     public Long getId() {
         return id;
@@ -86,5 +87,13 @@ public class TallerRespuesta {
 
     public void setArtesanos(Set<String> artesanos) {
         this.artesanos = artesanos;
+    }
+
+    public Set<String> getEspecialidades() {
+        return especialidades;
+    }
+
+    public void setEspecialidades(Set<String> especialidades) {
+        this.especialidades = especialidades;
     }
 }

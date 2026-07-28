@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import {
@@ -12,15 +12,117 @@ import {
 
 import "./EditarTaller.css";
 
-const API_TALLERES = "http://localhost:8090/api/talleres";
+const API_TALLERES =
+  "http://localhost:8090/api/talleres";
+const API_COMUNIDADES =
+  "http://localhost:8090/api/comunidades";
+const API_ARTESANOS =
+  "http://localhost:8090/api/artesanos?size=100";
 
 const FORMULARIO_INICIAL = {
-  nombreTaller: "",
-  responsable: "",
-  especialidad: "",
-  ubicacion: "",
-  resenia: "",
+  nombre: "",
+  descripcion: "",
+  direccion: "",
+  municipio: "",
+  comunidadId: "",
+  artesanoIds: [],
 };
+
+function extraerLista(datos) {
+  if (Array.isArray(datos)) {
+    return datos;
+  }
+
+  if (Array.isArray(datos?.content)) {
+    return datos.content;
+  }
+
+  return [];
+}
+
+async function obtenerMensajeError(
+  respuesta,
+  mensajePredeterminado,
+) {
+  try {
+    const datos = await respuesta.json();
+
+    return (
+      datos?.mensaje ||
+      datos?.error ||
+      mensajePredeterminado
+    );
+  } catch {
+    return mensajePredeterminado;
+  }
+}
+
+function validarCampo(nombre, valor) {
+  const texto = String(valor ?? "").trim();
+
+  if (nombre === "nombre") {
+    if (!texto) {
+      return "El nombre del taller es obligatorio.";
+    }
+
+    if (texto.length > 120) {
+      return "El nombre no puede exceder 120 caracteres.";
+    }
+  }
+
+  if (nombre === "descripcion" && texto.length > 1000) {
+    return "La descripción no puede exceder 1000 caracteres.";
+  }
+
+  if (nombre === "direccion") {
+    if (!texto) {
+      return "La dirección es obligatoria.";
+    }
+
+    if (texto.length > 200) {
+      return "La dirección no puede exceder 200 caracteres.";
+    }
+  }
+
+  if (nombre === "municipio") {
+    if (!texto) {
+      return "El municipio es obligatorio.";
+    }
+
+    if (texto.length > 120) {
+      return "El municipio no puede exceder 120 caracteres.";
+    }
+  }
+
+  if (nombre === "comunidadId" && !texto) {
+    return "Selecciona una comunidad.";
+  }
+
+  return "";
+}
+
+function validarFormulario(formulario) {
+  const errores = {};
+
+  [
+    "nombre",
+    "descripcion",
+    "direccion",
+    "municipio",
+    "comunidadId",
+  ].forEach((nombre) => {
+    const mensaje = validarCampo(
+      nombre,
+      formulario[nombre],
+    );
+
+    if (mensaje) {
+      errores[nombre] = mensaje;
+    }
+  });
+
+  return errores;
+}
 
 function EditarTaller() {
   const navigate = useNavigate();
@@ -29,109 +131,111 @@ function EditarTaller() {
   const [formulario, setFormulario] = useState(
     FORMULARIO_INICIAL,
   );
-
+  const [comunidades, setComunidades] = useState([]);
+  const [artesanos, setArtesanos] = useState([]);
   const [errores, setErrores] = useState({});
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
-  const [errorPeticion, setErrorPeticion] = useState("");
+  const [errorCarga, setErrorCarga] = useState("");
+  const [errorPeticion, setErrorPeticion] =
+    useState("");
   const [actualizacionExitosa, setActualizacionExitosa] =
     useState(false);
 
-  useEffect(() => {
-    const cargarTaller = async () => {
-      try {
-        setCargando(true);
-        setErrorPeticion("");
+  const cargarDatos = useCallback(async () => {
+    try {
+      setCargando(true);
+      setErrorCarga("");
+      setErrorPeticion("");
 
-        const respuesta = await fetch(
-          `${API_TALLERES}/${id}`,
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        throw new Error(
+          "No se encontró una sesión iniciada.",
         );
-
-        if (!respuesta.ok) {
-          throw new Error(
-            `No se pudo obtener el taller. Código: ${respuesta.status}`,
-          );
-        }
-
-        const taller = await respuesta.json();
-
-        setFormulario({
-          nombreTaller: taller.nombreTaller || "",
-          responsable: taller.responsable || "",
-          especialidad: taller.especialidad || "",
-          ubicacion: taller.ubicacion || "",
-          resenia:
-            taller.resenia !== undefined &&
-            taller.resenia !== null
-              ? String(taller.resenia)
-              : "",
-        });
-      } catch (error) {
-        console.error(
-          "Error al cargar el taller:",
-          error,
-        );
-
-        setErrorPeticion(
-          "No fue posible obtener la información del taller.",
-        );
-      } finally {
-        setCargando(false);
       }
-    };
 
-    cargarTaller();
+      const cabeceras = {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      };
+
+      const [
+        respuestaTaller,
+        respuestaComunidades,
+        respuestaArtesanos,
+      ] = await Promise.all([
+        fetch(`${API_TALLERES}/${id}`, {
+          headers: cabeceras,
+        }),
+        fetch(API_COMUNIDADES, {
+          headers: cabeceras,
+        }),
+        fetch(API_ARTESANOS, {
+          headers: cabeceras,
+        }),
+      ]);
+
+      if (!respuestaTaller.ok) {
+        throw new Error(
+          await obtenerMensajeError(
+            respuestaTaller,
+            "No se pudo obtener el taller seleccionado.",
+          ),
+        );
+      }
+
+      if (!respuestaComunidades.ok) {
+        throw new Error(
+          "No se pudo cargar la lista de comunidades.",
+        );
+      }
+
+      if (!respuestaArtesanos.ok) {
+        throw new Error(
+          "No se pudo cargar la lista de artesanos.",
+        );
+      }
+
+      const [taller, datosComunidades, datosArtesanos] =
+        await Promise.all([
+          respuestaTaller.json(),
+          respuestaComunidades.json(),
+          respuestaArtesanos.json(),
+        ]);
+
+      setComunidades(extraerLista(datosComunidades));
+      setArtesanos(extraerLista(datosArtesanos));
+      setFormulario({
+        nombre: taller.nombre || "",
+        descripcion: taller.descripcion || "",
+        direccion: taller.direccion || "",
+        municipio: taller.municipio || "",
+        comunidadId: String(taller.comunidadId ?? ""),
+        artesanoIds: Array.isArray(
+          taller.artesanoIds,
+        )
+          ? taller.artesanoIds.map(String)
+          : [],
+      });
+    } catch (error) {
+      console.error(
+        "Error al cargar el taller:",
+        error,
+      );
+      setErrorCarga(
+        error.message ||
+          "No fue posible obtener la información del taller.",
+      );
+    } finally {
+      setCargando(false);
+    }
   }, [id]);
 
-  const validarCampo = (nombre, valor) => {
-    const texto = String(valor ?? "").trim();
-
-    if (nombre === "nombreTaller") {
-      if (!texto) {
-        return "El nombre del taller es obligatorio.";
-      }
-
-      if (texto.length < 3) {
-        return "El nombre debe tener al menos 3 caracteres.";
-      }
-    }
-
-    if (nombre === "responsable") {
-      if (!texto) {
-        return "El responsable es obligatorio.";
-      }
-
-      if (texto.length < 3) {
-        return "El responsable debe tener al menos 3 caracteres.";
-      }
-    }
-
-    if (nombre === "especialidad" && !texto) {
-      return "La especialidad es obligatoria.";
-    }
-
-    if (nombre === "ubicacion" && !texto) {
-      return "La ubicación es obligatoria.";
-    }
-
-    if (nombre === "resenia") {
-      if (!texto) {
-        return "La calificación es obligatoria.";
-      }
-
-      const calificacion = Number(texto);
-
-      if (Number.isNaN(calificacion)) {
-        return "La calificación debe ser un número.";
-      }
-
-      if (calificacion < 0 || calificacion > 5) {
-        return "La calificación debe estar entre 0 y 5.";
-      }
-    }
-
-    return "";
-  };
+  useEffect(() => {
+    cargarDatos();
+  }, [cargarDatos]);
 
   const actualizarCampo = (evento) => {
     const { name, value } = evento.target;
@@ -141,36 +245,47 @@ function EditarTaller() {
       [name]: value,
     }));
 
-    setErrores((erroresAnteriores) => ({
-      ...erroresAnteriores,
-      [name]: validarCampo(name, value),
-    }));
+    setErrores((erroresAnteriores) => {
+      const actualizados = { ...erroresAnteriores };
+      const mensaje = validarCampo(name, value);
+
+      if (mensaje) {
+        actualizados[name] = mensaje;
+      } else {
+        delete actualizados[name];
+      }
+
+      return actualizados;
+    });
 
     setErrorPeticion("");
   };
 
-  const validarFormulario = () => {
-    const nuevosErrores = {};
+  const alternarArtesano = (artesanoId) => {
+    const idTexto = String(artesanoId);
 
-    Object.entries(formulario).forEach(
-      ([nombre, valor]) => {
-        const mensaje = validarCampo(nombre, valor);
-
-        if (mensaje) {
-          nuevosErrores[nombre] = mensaje;
-        }
-      },
-    );
-
-    setErrores(nuevosErrores);
-
-    return Object.keys(nuevosErrores).length === 0;
+    setFormulario((formularioAnterior) => ({
+      ...formularioAnterior,
+      artesanoIds:
+        formularioAnterior.artesanoIds.includes(idTexto)
+          ? formularioAnterior.artesanoIds.filter(
+              (idActual) => idActual !== idTexto,
+            )
+          : [
+              ...formularioAnterior.artesanoIds,
+              idTexto,
+            ],
+    }));
   };
 
   const actualizarTaller = async (evento) => {
     evento.preventDefault();
 
-    if (!validarFormulario()) {
+    const nuevosErrores =
+      validarFormulario(formulario);
+    setErrores(nuevosErrores);
+
+    if (Object.keys(nuevosErrores).length > 0) {
       return;
     }
 
@@ -179,33 +294,45 @@ function EditarTaller() {
       setErrorPeticion("");
       setActualizacionExitosa(false);
 
-      const tallerActualizado = {
-        nombreTaller: formulario.nombreTaller.trim(),
-        responsable: formulario.responsable.trim(),
-        especialidad: formulario.especialidad.trim(),
-        ubicacion: formulario.ubicacion.trim(),
-        resenia: Number(formulario.resenia),
-      };
+      const token = localStorage.getItem("token");
 
       const respuesta = await fetch(
         `${API_TALLERES}/${id}`,
         {
           method: "PUT",
           headers: {
+            Accept: "application/json",
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify(tallerActualizado),
+          body: JSON.stringify({
+            nombre: formulario.nombre.trim(),
+            descripcion:
+              formulario.descripcion.trim() || null,
+            direccion: formulario.direccion.trim(),
+            municipio: formulario.municipio.trim(),
+            comunidadId: Number(
+              formulario.comunidadId,
+            ),
+            artesanoIds: formulario.artesanoIds.map(
+              Number,
+            ),
+          }),
         },
       );
 
       if (!respuesta.ok) {
         throw new Error(
-          `No se pudo actualizar el taller. Código: ${respuesta.status}`,
+          await obtenerMensajeError(
+            respuesta,
+            respuesta.status === 403
+              ? "No tienes permiso para editar talleres."
+              : "No se pudo actualizar el taller.",
+          ),
         );
       }
 
       await respuesta.json();
-
       setActualizacionExitosa(true);
 
       setTimeout(() => {
@@ -216,17 +343,13 @@ function EditarTaller() {
         "Error al actualizar el taller:",
         error,
       );
-
       setErrorPeticion(
-        "No fue posible actualizar el taller. Intenta nuevamente.",
+        error.message ||
+          "No fue posible actualizar el taller.",
       );
     } finally {
       setGuardando(false);
     }
-  };
-
-  const volverAlListado = () => {
-    navigate("/talleres");
   };
 
   if (cargando) {
@@ -237,7 +360,6 @@ function EditarTaller() {
             className="icono-girando"
             size={34}
           />
-
           <p>Cargando información del taller...</p>
         </div>
       </section>
@@ -255,14 +377,15 @@ function EditarTaller() {
           <h2>Editar taller</h2>
 
           <p className="descripcion-editar-taller">
-            Actualiza la información del taller seleccionado.
+            Actualiza la información del taller
+            seleccionado.
           </p>
         </div>
 
         <button
           className="boton-volver-talleres"
           type="button"
-          onClick={volverAlListado}
+          onClick={() => navigate("/talleres")}
           disabled={guardando}
         >
           <ArrowLeft size={18} />
@@ -275,228 +398,272 @@ function EditarTaller() {
       {actualizacionExitosa && (
         <div className="mensaje-editar mensaje-editar-exitoso">
           <CheckCircle2 size={22} />
-
           <div>
             <strong>
               Taller actualizado correctamente
             </strong>
-
             <p>Regresando al listado de talleres...</p>
           </div>
         </div>
       )}
 
-      {errorPeticion && (
+      {(errorCarga || errorPeticion) && (
         <div className="mensaje-editar mensaje-editar-error">
           <AlertCircle size={22} />
-
           <div>
             <strong>
               No se pudo completar la operación
             </strong>
-
-            <p>{errorPeticion}</p>
+            <p>{errorCarga || errorPeticion}</p>
           </div>
         </div>
       )}
 
-      <article className="tarjeta-editar-taller">
-        <div className="titulo-editar-taller">
-          <div className="icono-editar-taller">
-            <Building2 size={25} />
-          </div>
-
-          <div>
-            <h3>Información del taller</h3>
-
-            <p>
-              Modifica los datos necesarios y guarda los
-              cambios.
-            </p>
-          </div>
-        </div>
-
-        <form
-          className="formulario-editar-taller"
-          onSubmit={actualizarTaller}
-          noValidate
-        >
-          <div className="cuadricula-editar-taller">
-            <div className="grupo-campo-editar">
-              <label htmlFor="nombreTaller">
-                Nombre del taller <span>*</span>
-              </label>
-
-              <input
-                id="nombreTaller"
-                name="nombreTaller"
-                type="text"
-                value={formulario.nombreTaller}
-                onChange={actualizarCampo}
-                disabled={guardando}
-                className={
-                  errores.nombreTaller
-                    ? "campo-con-error"
-                    : ""
-                }
-              />
-
-              {errores.nombreTaller && (
-                <small className="texto-error-campo">
-                  <AlertCircle size={14} />
-                  {errores.nombreTaller}
-                </small>
-              )}
+      {!errorCarga && (
+        <article className="tarjeta-editar-taller">
+          <div className="titulo-editar-taller">
+            <div className="icono-editar-taller">
+              <Building2 size={25} />
             </div>
 
-            <div className="grupo-campo-editar">
-              <label htmlFor="responsable">
-                Responsable <span>*</span>
-              </label>
-
-              <input
-                id="responsable"
-                name="responsable"
-                type="text"
-                value={formulario.responsable}
-                onChange={actualizarCampo}
-                disabled={guardando}
-                className={
-                  errores.responsable
-                    ? "campo-con-error"
-                    : ""
-                }
-              />
-
-              {errores.responsable && (
-                <small className="texto-error-campo">
-                  <AlertCircle size={14} />
-                  {errores.responsable}
-                </small>
-              )}
-            </div>
-
-            <div className="grupo-campo-editar">
-              <label htmlFor="especialidad">
-                Especialidad <span>*</span>
-              </label>
-
-              <input
-                id="especialidad"
-                name="especialidad"
-                type="text"
-                value={formulario.especialidad}
-                onChange={actualizarCampo}
-                disabled={guardando}
-                className={
-                  errores.especialidad
-                    ? "campo-con-error"
-                    : ""
-                }
-              />
-
-              {errores.especialidad && (
-                <small className="texto-error-campo">
-                  <AlertCircle size={14} />
-                  {errores.especialidad}
-                </small>
-              )}
-            </div>
-
-            <div className="grupo-campo-editar">
-              <label htmlFor="ubicacion">
-                Ubicación <span>*</span>
-              </label>
-
-              <input
-                id="ubicacion"
-                name="ubicacion"
-                type="text"
-                value={formulario.ubicacion}
-                onChange={actualizarCampo}
-                disabled={guardando}
-                className={
-                  errores.ubicacion
-                    ? "campo-con-error"
-                    : ""
-                }
-              />
-
-              {errores.ubicacion && (
-                <small className="texto-error-campo">
-                  <AlertCircle size={14} />
-                  {errores.ubicacion}
-                </small>
-              )}
-            </div>
-
-            <div className="grupo-campo-editar campo-ancho-completo">
-              <label htmlFor="resenia">
-                Calificación <span>*</span>
-              </label>
-
-              <input
-                id="resenia"
-                name="resenia"
-                type="number"
-                min="0"
-                max="5"
-                step="0.1"
-                value={formulario.resenia}
-                onChange={actualizarCampo}
-                disabled={guardando}
-                placeholder="Ej. 4.8"
-                className={
-                  errores.resenia
-                    ? "campo-con-error"
-                    : ""
-                }
-              />
-
-              {errores.resenia && (
-                <small className="texto-error-campo">
-                  <AlertCircle size={14} />
-                  {errores.resenia}
-                </small>
-              )}
+            <div>
+              <h3>Información del taller</h3>
+              <p>
+                Modifica los datos necesarios y guarda los
+                cambios.
+              </p>
             </div>
           </div>
 
-          <div className="acciones-editar-taller">
-            <button
-              className="boton-cancelar-edicion"
-              type="button"
-              onClick={volverAlListado}
-              disabled={guardando}
-            >
-              Cancelar
-            </button>
+          <form
+            className="formulario-editar-taller"
+            onSubmit={actualizarTaller}
+            noValidate
+          >
+            <div className="cuadricula-editar-taller">
+              <div className="grupo-campo-editar">
+                <label htmlFor="nombre">
+                  Nombre del taller <span>*</span>
+                </label>
+                <input
+                  id="nombre"
+                  name="nombre"
+                  type="text"
+                  value={formulario.nombre}
+                  onChange={actualizarCampo}
+                  disabled={guardando}
+                  maxLength="120"
+                  className={
+                    errores.nombre
+                      ? "campo-con-error"
+                      : ""
+                  }
+                />
+                {errores.nombre && (
+                  <small className="texto-error-campo">
+                    <AlertCircle size={14} />
+                    {errores.nombre}
+                  </small>
+                )}
+              </div>
 
-            <button
-              className="boton-guardar-cambios"
-              type="submit"
-              disabled={
-                guardando || actualizacionExitosa
-              }
-            >
-              {guardando ? (
-                <>
-                  <LoaderCircle
-                    className="icono-girando"
-                    size={18}
-                  />
-                  Guardando...
-                </>
-              ) : (
-                <>
-                  <Save size={18} />
-                  Guardar cambios
-                </>
-              )}
-            </button>
-          </div>
-        </form>
-      </article>
+              <div className="grupo-campo-editar">
+                <label htmlFor="comunidadId">
+                  Comunidad <span>*</span>
+                </label>
+                <select
+                  id="comunidadId"
+                  name="comunidadId"
+                  value={formulario.comunidadId}
+                  onChange={actualizarCampo}
+                  disabled={guardando}
+                  className={
+                    errores.comunidadId
+                      ? "campo-con-error"
+                      : ""
+                  }
+                >
+                  <option value="">
+                    Selecciona una comunidad
+                  </option>
+                  {comunidades.map((comunidad) => (
+                    <option
+                      key={comunidad.id}
+                      value={comunidad.id}
+                    >
+                      {comunidad.nombre} —{" "}
+                      {comunidad.region}
+                    </option>
+                  ))}
+                </select>
+                {errores.comunidadId && (
+                  <small className="texto-error-campo">
+                    <AlertCircle size={14} />
+                    {errores.comunidadId}
+                  </small>
+                )}
+              </div>
+
+              <div className="grupo-campo-editar">
+                <label htmlFor="direccion">
+                  Dirección <span>*</span>
+                </label>
+                <input
+                  id="direccion"
+                  name="direccion"
+                  type="text"
+                  value={formulario.direccion}
+                  onChange={actualizarCampo}
+                  disabled={guardando}
+                  maxLength="200"
+                  className={
+                    errores.direccion
+                      ? "campo-con-error"
+                      : ""
+                  }
+                />
+                {errores.direccion && (
+                  <small className="texto-error-campo">
+                    <AlertCircle size={14} />
+                    {errores.direccion}
+                  </small>
+                )}
+              </div>
+
+              <div className="grupo-campo-editar">
+                <label htmlFor="municipio">
+                  Municipio <span>*</span>
+                </label>
+                <input
+                  id="municipio"
+                  name="municipio"
+                  type="text"
+                  value={formulario.municipio}
+                  onChange={actualizarCampo}
+                  disabled={guardando}
+                  maxLength="120"
+                  className={
+                    errores.municipio
+                      ? "campo-con-error"
+                      : ""
+                  }
+                />
+                {errores.municipio && (
+                  <small className="texto-error-campo">
+                    <AlertCircle size={14} />
+                    {errores.municipio}
+                  </small>
+                )}
+              </div>
+
+              <div className="grupo-campo-editar campo-ancho-completo">
+                <label htmlFor="descripcion">
+                  Descripción
+                </label>
+                <textarea
+                  id="descripcion"
+                  name="descripcion"
+                  rows="5"
+                  value={formulario.descripcion}
+                  onChange={actualizarCampo}
+                  disabled={guardando}
+                  maxLength="1000"
+                />
+                <div className="pie-campo-resenia">
+                  <div>
+                    {errores.descripcion && (
+                      <small className="texto-error-campo">
+                        <AlertCircle size={14} />
+                        {errores.descripcion}
+                      </small>
+                    )}
+                  </div>
+                  <small>
+                    {formulario.descripcion.length} / 1000
+                  </small>
+                </div>
+              </div>
+
+              <fieldset className="campo-ancho-completo selector-artesanos">
+                <legend>Artesanos responsables</legend>
+                <p>
+                  Selecciona uno o más artesanos para
+                  relacionarlos con el taller.
+                </p>
+
+                <div className="lista-selector-artesanos">
+                  {artesanos.map((artesano) => (
+                    <label
+                      className="opcion-artesano"
+                      key={artesano.id}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={formulario.artesanoIds.includes(
+                          String(artesano.id),
+                        )}
+                        onChange={() =>
+                          alternarArtesano(artesano.id)
+                        }
+                        disabled={guardando}
+                      />
+                      <span>
+                        <strong>
+                          {artesano.nombreUsuario}
+                        </strong>
+                        <small>
+                          {Array.isArray(
+                            artesano.especialidades,
+                          ) &&
+                          artesano.especialidades.length > 0
+                            ? artesano.especialidades.join(
+                                ", ",
+                              )
+                            : "Sin especialidad"}
+                        </small>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            </div>
+
+            <div className="acciones-editar-taller">
+              <button
+                className="boton-cancelar-edicion"
+                type="button"
+                onClick={() => navigate("/talleres")}
+                disabled={guardando}
+              >
+                Cancelar
+              </button>
+
+              <button
+                className="boton-guardar-cambios"
+                type="submit"
+                disabled={
+                  guardando || actualizacionExitosa
+                }
+              >
+                {guardando ? (
+                  <>
+                    <LoaderCircle
+                      className="icono-girando"
+                      size={18}
+                    />
+                    Guardando...
+                  </>
+                ) : (
+                  <>
+                    <Save size={18} />
+                    Guardar cambios
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </article>
+      )}
     </section>
   );
 }

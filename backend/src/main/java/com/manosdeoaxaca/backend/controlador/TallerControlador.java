@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,8 +14,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.manosdeoaxaca.backend.model.Taller;
+import com.manosdeoaxaca.backend.dto.TallerPeticion;
+import com.manosdeoaxaca.backend.dto.TallerRespuesta;
 import com.manosdeoaxaca.backend.servicio.TallerServicio;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/talleres")
@@ -27,50 +31,37 @@ public class TallerControlador {
     }
 
     @GetMapping
-    public ResponseEntity<List<Taller>> listarTodos() {
+    public ResponseEntity<List<TallerRespuesta>> listarTodos() {
         return ResponseEntity.ok(tallerServicio.listarTodos());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Taller> buscarPorId(@PathVariable Long id) {
-        return tallerServicio.buscarPorId(id)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<TallerRespuesta> buscarPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(tallerServicio.buscarPorId(id));
     }
 
     @PostMapping
-    public ResponseEntity<Taller> crear(@RequestBody Taller taller) {
-        taller.setId(null);
-
-        Taller tallerGuardado = tallerServicio.guardar(taller);
-
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<TallerRespuesta> crear(
+            @Valid @RequestBody TallerPeticion peticion) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(tallerGuardado);
+                .body(tallerServicio.crear(peticion));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Taller> actualizar(
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<TallerRespuesta> actualizar(
             @PathVariable Long id,
-            @RequestBody Taller taller) {
-
-        try {
-            Taller tallerActualizado =
-                    tallerServicio.actualizar(id, taller);
-
-            return ResponseEntity.ok(tallerActualizado);
-        } catch (IllegalArgumentException excepcion) {
-            return ResponseEntity.notFound().build();
-        }
+            @Valid @RequestBody TallerPeticion peticion) {
+        return ResponseEntity.ok(
+                tallerServicio.actualizar(id, peticion));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        try {
-            tallerServicio.eliminar(id);
-            return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException excepcion) {
-            return ResponseEntity.notFound().build();
-        }
+        tallerServicio.eliminar(id);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -4,6 +4,7 @@ import java.util.Set;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 public class TallerPeticion {
@@ -36,9 +37,12 @@ public class TallerPeticion {
     private String municipio;
 
     @NotNull(message = "La comunidad es obligatoria")
+    @Positive(message = "La comunidad seleccionada no es válida")
     private Long comunidadId;
 
-    private Set<Long> artesanoIds;
+    private Set<@Positive(
+        message = "El artesano seleccionado no es válido"
+    ) Long> artesanoIds;
 
     public String getNombre() {
         return nombre;
