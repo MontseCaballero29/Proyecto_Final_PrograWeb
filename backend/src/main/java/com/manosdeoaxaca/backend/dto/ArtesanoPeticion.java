@@ -2,6 +2,8 @@ package com.manosdeoaxaca.backend.dto;
 
 import java.util.Set;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -20,8 +22,11 @@ public class ArtesanoPeticion {
         message = "El formato del CURP no es válido")
     private String curp;
 
+    @Size(max = 2000, message = "La biografía no puede exceder 2000 caracteres")
     private String biografia;
 
+    @Min(value = 0, message = "Los años de oficio no pueden ser negativos")
+    @Max(value = 100, message = "Los años de oficio no pueden exceder los 100")
     private Integer aniosOficio;
 
     @Size(max = 80, message = "La lengua no puede exceder 80 caracteres")
