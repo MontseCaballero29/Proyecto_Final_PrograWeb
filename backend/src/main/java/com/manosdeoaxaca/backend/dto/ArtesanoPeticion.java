@@ -3,6 +3,7 @@ package com.manosdeoaxaca.backend.dto;
 import java.util.Set;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class ArtesanoPeticion {
@@ -14,6 +15,9 @@ public class ArtesanoPeticion {
     private Long comunidadId;
 
     @Size(max = 18, message = "El CURP no puede exceder 18 caracteres")
+    @Pattern(
+        regexp = "^[A-Z]{4}[0-9]{6}[A-Z]{6}[A-Z0-9]{2}$",
+        message = "El formato del CURP no es válido")
     private String curp;
 
     private String biografia;
