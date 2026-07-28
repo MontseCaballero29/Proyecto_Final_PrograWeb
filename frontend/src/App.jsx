@@ -25,6 +25,7 @@ import {
 } from "react-router-dom";
 
 import Login from "./paginas/Login";
+import Registro from "./paginas/Registro";
 import Talleres from "./paginas/Talleres";
 import RegistrarTaller from "./paginas/RegistrarTaller";
 import EditarTaller from "./paginas/EditarTaller";
@@ -677,6 +678,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/registro" element={<Registro />} />
         <Route element={<RutaProtegida />}>
         <Route element={<Layout />}>
           <Route path="/" element={<PanelPrincipal />} />

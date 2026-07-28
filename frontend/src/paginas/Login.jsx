@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.jpeg";
 
 const API_LOGIN = "http://localhost:8090/api/auth/login";
@@ -86,7 +86,7 @@ function Login() {
               />
             </div>
 
-            <a href="#" className="recuperar-login">Recuperar acceso</a>
+            <Link to="/registro" className="recuperar-login">¿No tienes cuenta? Regístrate</Link>
 
             {error && <p className="error-login">{error}</p>}
 

@@ -865,3 +865,20 @@ tbody tr:last-child td {
   background: #f5d2cd;
   color: var(--rojo);
 }
+
+.error-campo {
+  margin: 6px 0 0;
+  color: var(--rojo);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.enlace-acceso {
+  color: var(--azul);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.enlace-acceso:hover {
+  text-decoration: underline;
+}
