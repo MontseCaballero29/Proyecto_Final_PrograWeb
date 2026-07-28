@@ -24,11 +24,13 @@ import {
   useNavigate,
 } from "react-router-dom";
 
+
 import Login from "./paginas/Login";
 import Registro from "./paginas/Registro";
 import Talleres from "./paginas/Talleres";
 import RegistrarTaller from "./paginas/RegistrarTaller";
 import EditarTaller from "./paginas/EditarTaller";
+import Artesanos from "./paginas/Artesanos";
 import Artesanias from "./paginas/Artesanias";
 import EditarArtesania from "./paginas/EditarArtesania";
 
@@ -70,7 +72,7 @@ const seccionesMenu = [
   {
     titulo: "CATÁLOGO",
     opciones: [
-      { nombre: "Artesanos" },
+      { nombre: "Artesanos" , ruta: "/artesanos"},
       { nombre: "Talleres", ruta: "/talleres" },
       { nombre: "Experiencias" },
       { nombre: "Artesanías", ruta: "/artesanias" },
@@ -683,6 +685,7 @@ function App() {
         <Route element={<RutaProtegida />}>
         <Route element={<Layout />}>
           <Route path="/" element={<PanelPrincipal />} />
+          <Route path="/artesanos" element={<Artesanos />} />
           <Route path="/talleres" element={<Talleres />} />
           <Route path="/talleres/nuevo" element={<RegistrarTaller />} />
           <Route path="/talleres/editar/:id" element={<EditarTaller />} />
