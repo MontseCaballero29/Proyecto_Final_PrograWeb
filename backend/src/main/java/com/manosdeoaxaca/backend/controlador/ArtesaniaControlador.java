@@ -26,77 +26,38 @@ public class ArtesaniaControlador {
 
     private final ArtesaniaServicio artesaniaServicio;
 
-    public ArtesaniaControlador(
-            ArtesaniaServicio artesaniaServicio) {
-
+    public ArtesaniaControlador(ArtesaniaServicio artesaniaServicio) {
         this.artesaniaServicio = artesaniaServicio;
     }
 
     @GetMapping
-    public ResponseEntity<List<ArtesaniaRespuesta>>
-            listarTodas() {
-
-        return ResponseEntity.ok(
-                artesaniaServicio.listarTodas()
-        );
+    public ResponseEntity<List<ArtesaniaRespuesta>> listarTodas() {
+        return ResponseEntity.ok(artesaniaServicio.listarTodas());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ArtesaniaRespuesta>
-            obtenerPorId(@PathVariable Long id) {
-
-        try {
-            return ResponseEntity.ok(
-                    artesaniaServicio.obtenerPorId(id)
-            );
-        } catch (IllegalArgumentException excepcion) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<ArtesaniaRespuesta> obtenerPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(artesaniaServicio.obtenerPorId(id));
     }
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ArtesaniaRespuesta> crear(
-            @Valid
-            @RequestBody ArtesaniaPeticion peticion) {
-
-        ArtesaniaRespuesta creada =
-                artesaniaServicio.crear(peticion);
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(creada);
+    public ResponseEntity<ArtesaniaRespuesta> crear(@Valid @RequestBody ArtesaniaPeticion peticion) {
+        ArtesaniaRespuesta creada = artesaniaServicio.crear(peticion);
+        return ResponseEntity.status(HttpStatus.CREATED).body(creada);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ArtesaniaRespuesta> actualizar(
-            @PathVariable Long id,
-            @Valid
-            @RequestBody ArtesaniaPeticion peticion) {
-
-        try {
-            return ResponseEntity.ok(
-                    artesaniaServicio.actualizar(
-                            id,
-                            peticion
-                    )
-            );
-        } catch (IllegalArgumentException excepcion) {
-            return ResponseEntity.notFound().build();
-        }
+            @PathVariable Long id, @Valid @RequestBody ArtesaniaPeticion peticion) {
+        return ResponseEntity.ok(artesaniaServicio.actualizar(id, peticion));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> eliminar(
-            @PathVariable Long id) {
-
-        try {
-            artesaniaServicio.eliminar(id);
-            return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException excepcion) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        artesaniaServicio.eliminar(id);
+        return ResponseEntity.noContent().build();
     }
 }

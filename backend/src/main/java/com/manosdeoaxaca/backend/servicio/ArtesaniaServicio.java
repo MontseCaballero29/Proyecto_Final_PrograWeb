@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.manosdeoaxaca.backend.dto.ArtesaniaPeticion;
 import com.manosdeoaxaca.backend.dto.ArtesaniaRespuesta;
+import com.manosdeoaxaca.backend.excepciones.RecursoNoEncontradoExcepcion;
 import com.manosdeoaxaca.backend.model.Artesania;
 import com.manosdeoaxaca.backend.model.Taller;
 import com.manosdeoaxaca.backend.repositorio.ArtesaniaRepositorio;
@@ -44,7 +45,7 @@ public class ArtesaniaServicio {
         Taller taller = tallerRepositorio
                 .findById(peticion.getTallerId())
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new RecursoNoEncontradoExcepcion(
                                 "No existe el taller con id: "
                                         + peticion.getTallerId()
                         )
@@ -69,7 +70,7 @@ public class ArtesaniaServicio {
         Taller taller = tallerRepositorio
                 .findById(peticion.getTallerId())
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new RecursoNoEncontradoExcepcion(
                                 "No existe el taller con id: "
                                         + peticion.getTallerId()
                         )
@@ -85,7 +86,7 @@ public class ArtesaniaServicio {
 
     public void eliminar(Long id) {
         if (!artesaniaRepositorio.existsById(id)) {
-            throw new IllegalArgumentException(
+            throw new RecursoNoEncontradoExcepcion(
                     "No existe la artesanía con id: " + id
             );
         }
@@ -97,7 +98,7 @@ public class ArtesaniaServicio {
         return artesaniaRepositorio
                 .findById(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new RecursoNoEncontradoExcepcion(
                                 "No existe la artesanía con id: "
                                         + id
                         )

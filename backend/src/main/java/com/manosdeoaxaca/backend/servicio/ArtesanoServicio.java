@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.manosdeoaxaca.backend.dto.ArtesanoPeticion;
 import com.manosdeoaxaca.backend.dto.ArtesanoRespuesta;
+import com.manosdeoaxaca.backend.excepciones.RecursoNoEncontradoExcepcion;
 import com.manosdeoaxaca.backend.model.Artesano;
 import com.manosdeoaxaca.backend.model.Comunidad;
 import com.manosdeoaxaca.backend.model.Especialidad;
@@ -40,16 +41,16 @@ public class ArtesanoServicio {
 
     public ArtesanoRespuesta obtenerPorId(Long id) {
         Artesano artesano = artesanoRepositorio.findById(id)
-                .orElseThrow(() -> new RuntimeException("No existe el artesano con id: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoExcepcion("No existe el artesano con id: " + id));
         return convertirAResponse(artesano);
     }
 
     public ArtesanoRespuesta crear(ArtesanoPeticion peticion) {
         Usuario usuario = usuarioRepositorio.findById(peticion.getUsuarioId())
-                .orElseThrow(() -> new RuntimeException("No existe el usuario con id: " + peticion.getUsuarioId()));
+                .orElseThrow(() -> new RecursoNoEncontradoExcepcion("No existe el usuario con id: " + peticion.getUsuarioId()));
 
         Comunidad comunidad = comunidadRepositorio.findById(peticion.getComunidadId())
-                .orElseThrow(() -> new RuntimeException("No existe la comunidad con id: " + peticion.getComunidadId()));
+                .orElseThrow(() -> new RecursoNoEncontradoExcepcion("No existe la comunidad con id: " + peticion.getComunidadId()));
 
         Artesano artesano = new Artesano();
         artesano.setUsuario(usuario);
@@ -62,7 +63,7 @@ public class ArtesanoServicio {
         if (peticion.getEspecialidadIds() != null) {
             Set<Especialidad> especialidades = peticion.getEspecialidadIds().stream()
                     .map(idEsp -> especialidadRepositorio.findById(idEsp)
-                            .orElseThrow(() -> new RuntimeException("No existe la especialidad con id: " + idEsp)))
+                            .orElseThrow(() -> new RecursoNoEncontradoExcepcion("No existe la especialidad con id: " + idEsp)))
                     .collect(Collectors.toSet());
             artesano.setEspecialidades(especialidades);
         }
@@ -73,10 +74,10 @@ public class ArtesanoServicio {
 
     public ArtesanoRespuesta actualizar(Long id, ArtesanoPeticion peticion) {
         Artesano artesano = artesanoRepositorio.findById(id)
-                .orElseThrow(() -> new RuntimeException("No existe el artesano con id: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoExcepcion("No existe el artesano con id: " + id));
 
         Comunidad comunidad = comunidadRepositorio.findById(peticion.getComunidadId())
-                .orElseThrow(() -> new RuntimeException("No existe la comunidad con id: " + peticion.getComunidadId()));
+                .orElseThrow(() -> new RecursoNoEncontradoExcepcion("No existe la comunidad con id: " + peticion.getComunidadId()));
 
         artesano.setComunidad(comunidad);
         artesano.setCurp(peticion.getCurp());
@@ -87,7 +88,7 @@ public class ArtesanoServicio {
         if (peticion.getEspecialidadIds() != null) {
             Set<Especialidad> especialidades = peticion.getEspecialidadIds().stream()
                     .map(idEsp -> especialidadRepositorio.findById(idEsp)
-                            .orElseThrow(() -> new RuntimeException("No existe la especialidad con id: " + idEsp)))
+                            .orElseThrow(() -> new RecursoNoEncontradoExcepcion("No existe la especialidad con id: " + idEsp)))
                     .collect(Collectors.toSet());
             artesano.setEspecialidades(especialidades);
         }
@@ -98,7 +99,7 @@ public class ArtesanoServicio {
 
     public void eliminar(Long id) {
         if (!artesanoRepositorio.existsById(id)) {
-            throw new RuntimeException("No existe el artesano con id: " + id);
+            throw new RecursoNoEncontradoExcepcion("No existe el artesano con id: " + id);
         }
         artesanoRepositorio.deleteById(id);
     }
