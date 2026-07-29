@@ -17,7 +17,7 @@ const API_TALLERES =
 const API_COMUNIDADES =
   "http://localhost:8090/api/comunidades";
 const API_ARTESANOS =
-  "http://localhost:8090/api/artesanos?size=100";
+  "http://localhost:8090/api/artesanos";
 
 const FORMULARIO_INICIAL = {
   nombre: "",
@@ -127,6 +127,8 @@ function validarFormulario(formulario) {
 function EditarTaller() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const esAdmin =
+    localStorage.getItem("rol") === "ADMIN";
 
   const [formulario, setFormulario] = useState(
     FORMULARIO_INICIAL,
@@ -164,7 +166,7 @@ function EditarTaller() {
       const [
         respuestaTaller,
         respuestaComunidades,
-        respuestaArtesanos,
+        respuestaRelacionada,
       ] = await Promise.all([
         fetch(`${API_TALLERES}/${id}`, {
           headers: cabeceras,
@@ -172,9 +174,12 @@ function EditarTaller() {
         fetch(API_COMUNIDADES, {
           headers: cabeceras,
         }),
-        fetch(`${API_ARTESANOS}?page=0&size=1000`, {
-          headers: cabeceras,
-        }),
+        fetch(
+          esAdmin
+            ? `${API_ARTESANOS}?page=0&size=1000`
+            : `${API_TALLERES}/mios?page=0&size=1000`,
+          { headers: cabeceras },
+        ),
       ]);
 
       if (!respuestaTaller.ok) {
@@ -192,21 +197,37 @@ function EditarTaller() {
         );
       }
 
-      if (!respuestaArtesanos.ok) {
+      if (!respuestaRelacionada.ok) {
         throw new Error(
-          "No se pudo cargar la lista de artesanos.",
+          esAdmin
+            ? "No se pudo cargar la lista de artesanos."
+            : "No se pudo validar la propiedad del taller.",
         );
       }
 
-      const [taller, datosComunidades, datosArtesanos] =
+      const [taller, datosComunidades, datosRelacionados] =
         await Promise.all([
           respuestaTaller.json(),
           respuestaComunidades.json(),
-          respuestaArtesanos.json(),
+          respuestaRelacionada.json(),
         ]);
 
+      if (
+        !esAdmin &&
+        !extraerLista(datosRelacionados).some(
+          (tallerPropio) =>
+            Number(tallerPropio.id) === Number(id),
+        )
+      ) {
+        throw new Error(
+          "No tienes permiso para editar este taller.",
+        );
+      }
+
       setComunidades(extraerLista(datosComunidades));
-      setArtesanos(extraerLista(datosArtesanos));
+      setArtesanos(
+        esAdmin ? extraerLista(datosRelacionados) : [],
+      );
       setFormulario({
         nombre: taller.nombre || "",
         descripcion: taller.descripcion || "",
@@ -231,7 +252,7 @@ function EditarTaller() {
     } finally {
       setCargando(false);
     }
-  }, [id]);
+  }, [esAdmin, id]);
 
   useEffect(() => {
     cargarDatos();
@@ -584,48 +605,50 @@ function EditarTaller() {
                 </div>
               </div>
 
-              <fieldset className="campo-ancho-completo selector-artesanos">
-                <legend>Artesanos responsables</legend>
-                <p>
-                  Selecciona uno o más artesanos para
-                  relacionarlos con el taller.
-                </p>
+              {esAdmin && (
+                <fieldset className="campo-ancho-completo selector-artesanos">
+                  <legend>Artesanos responsables</legend>
+                  <p>
+                    Selecciona uno o más artesanos para
+                    relacionarlos con el taller.
+                  </p>
 
-                <div className="lista-selector-artesanos">
-                  {artesanos.map((artesano) => (
-                    <label
-                      className="opcion-artesano"
-                      key={artesano.id}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={formulario.artesanoIds.includes(
-                          String(artesano.id),
-                        )}
-                        onChange={() =>
-                          alternarArtesano(artesano.id)
-                        }
-                        disabled={guardando}
-                      />
-                      <span>
-                        <strong>
-                          {artesano.nombreUsuario}
-                        </strong>
-                        <small>
-                          {Array.isArray(
-                            artesano.especialidades,
-                          ) &&
-                          artesano.especialidades.length > 0
-                            ? artesano.especialidades.join(
-                                ", ",
-                              )
-                            : "Sin especialidad"}
-                        </small>
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
+                  <div className="lista-selector-artesanos">
+                    {artesanos.map((artesano) => (
+                      <label
+                        className="opcion-artesano"
+                        key={artesano.id}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formulario.artesanoIds.includes(
+                            String(artesano.id),
+                          )}
+                          onChange={() =>
+                            alternarArtesano(artesano.id)
+                          }
+                          disabled={guardando}
+                        />
+                        <span>
+                          <strong>
+                            {artesano.nombreUsuario}
+                          </strong>
+                          <small>
+                            {Array.isArray(
+                              artesano.especialidades,
+                            ) &&
+                            artesano.especialidades.length > 0
+                              ? artesano.especialidades.join(
+                                  ", ",
+                                )
+                              : "Sin especialidad"}
+                          </small>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              )}
             </div>
 
             <div className="acciones-editar-taller">

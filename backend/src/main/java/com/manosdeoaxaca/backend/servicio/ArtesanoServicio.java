@@ -126,21 +126,15 @@ public class ArtesanoServicio {
     public Page<ArtesanoRespuesta> buscarConFiltros(
             Long comunidadId,
             String estadoValidacion,
+            String busqueda,
+            String region,
             Pageable pageable) {
-        Page<Artesano> resultado;
-
-        if (comunidadId != null) {
-            resultado = artesanoRepositorio
-                    .findByComunidadId(comunidadId, pageable);
-        } else if (estadoValidacion != null
-                && !estadoValidacion.isBlank()) {
-            resultado = artesanoRepositorio
-                    .findByEstadoValidacion(
-                            estadoValidacion.trim().toUpperCase(),
-                            pageable);
-        } else {
-            resultado = artesanoRepositorio.findAll(pageable);
-        }
+        Page<Artesano> resultado = artesanoRepositorio.buscar(
+                comunidadId,
+                normalizarFiltro(estadoValidacion),
+                normalizarFiltro(busqueda),
+                normalizarFiltro(region),
+                pageable);
 
         return resultado.map(this::convertirARespuesta);
     }
@@ -283,6 +277,12 @@ public class ArtesanoServicio {
         }
 
         return texto.trim();
+    }
+
+    private String normalizarFiltro(String texto) {
+        return texto == null || texto.isBlank()
+                ? null
+                : texto.trim();
     }
 
     private String enmascararCurp(String curp) {

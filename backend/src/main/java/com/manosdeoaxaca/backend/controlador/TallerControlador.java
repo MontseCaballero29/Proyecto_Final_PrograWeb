@@ -7,6 +7,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,13 +37,34 @@ public class TallerControlador {
     @GetMapping
     public ResponseEntity<Page<TallerRespuesta>> listar(
             @RequestParam(required = false) String municipio,
+            @RequestParam(required = false) String busqueda,
+            @RequestParam(required = false) String region,
             @PageableDefault(
                     size = 10,
                     sort = "id",
                     direction = Sort.Direction.ASC)
             Pageable pageable) {
         return ResponseEntity.ok(
-                tallerServicio.listar(municipio, pageable));
+                tallerServicio.listar(
+                        municipio,
+                        busqueda,
+                        region,
+                        pageable));
+    }
+
+    @GetMapping("/mios")
+    @PreAuthorize("hasRole('ARTESANO')")
+    public ResponseEntity<Page<TallerRespuesta>> listarMios(
+            Authentication authentication,
+            @PageableDefault(
+                    size = 10,
+                    sort = "id",
+                    direction = Sort.Direction.ASC)
+            Pageable pageable) {
+        return ResponseEntity.ok(
+                tallerServicio.listarPorArtesano(
+                        authentication.getName(),
+                        pageable));
     }
 
     @GetMapping("/{id}")
@@ -60,12 +82,16 @@ public class TallerControlador {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ARTESANO')")
     public ResponseEntity<TallerRespuesta> actualizar(
             @PathVariable Long id,
-            @Valid @RequestBody TallerPeticion peticion) {
+            @Valid @RequestBody TallerPeticion peticion,
+            Authentication authentication) {
         return ResponseEntity.ok(
-                tallerServicio.actualizar(id, peticion));
+                tallerServicio.actualizar(
+                        id,
+                        peticion,
+                        authentication.getName()));
     }
 
     @DeleteMapping("/{id}")

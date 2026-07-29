@@ -21,7 +21,9 @@ import {
   Outlet,
   Route,
   Routes,
+  useLocation,
   useNavigate,
+  useSearchParams,
 } from "react-router-dom";
 
 
@@ -35,10 +37,14 @@ import RegistrarArtesano from "./paginas/RegistrarArtesano";
 import EditarArtesano from "./paginas/EditarArtesano";
 import Artesanias from "./paginas/Artesanias";
 import EditarArtesania from "./paginas/EditarArtesania";
+import RegistrarArtesania from "./paginas/RegistrarArtesania";
+import Especialidades from "./paginas/Especialidades";
+import Resenas from "./paginas/Resenas";
+import ConfiguracionCuenta from "./paginas/ConfiguracionCuenta";
+import SolicitudesRegistro from "./paginas/SolicitudesRegistro";
 
 import "./App.css";
 
-//metodos auxiliares
 function obtenerSesion() {
   const correo = localStorage.getItem("correo");
   const rol = localStorage.getItem("rol");
@@ -61,48 +67,48 @@ function obtenerIniciales(correo) {
 
 
 const API_TALLERES = "http://localhost:8090/api/talleres";
+const API_COMUNIDADES =
+  "http://localhost:8090/api/comunidades";
+const API_ARTESANOS =
+  "http://localhost:8090/api/artesanos";
 
-const seccionesMenu = [
-  {
-    titulo: "VALIDACIÓN",
-    opciones: [
-      { nombre: "Solicitudes de registro" },
-      { nombre: "Vigencias" },
-      { nombre: "Verificación de identidad" },
-    ],
-  },
+const obtenerSeccionesMenu = (rol) => [
+  ...(rol === "ADMIN"
+    ? [
+        {
+          titulo: "VALIDACIÓN",
+          opciones: [
+            {
+              nombre: "Solicitudes de registro",
+              ruta: "/solicitudes-registro",
+            },
+          ],
+        },
+      ]
+    : []),
   {
     titulo: "CATÁLOGO",
     opciones: [
-      { nombre: "Artesanos" , ruta: "/artesanos"},
+      { nombre: "Artesanos", ruta: "/artesanos" },
       { nombre: "Talleres", ruta: "/talleres" },
-      { nombre: "Experiencias" },
       { nombre: "Artesanías", ruta: "/artesanias" },
-      { nombre: "Taxonomías" },
+      {
+        nombre: "Especialidades",
+        ruta: "/especialidades",
+      },
     ],
   },
   {
     titulo: "OPERACIÓN",
-    opciones: [
-      { nombre: "Reservas" },
-      { nombre: "Calendario de sesiones" },
-      { nombre: "Incidencias" },
-      { nombre: "Reseñas" },
-    ],
+    opciones: [{ nombre: "Reseñas", ruta: "/resenas" }],
   },
   {
-    titulo: "FINANZAS",
+    titulo: "CUENTA",
     opciones: [
-      { nombre: "Ingresos" },
-      { nombre: "Liquidaciones" },
-      { nombre: "Tarifas y comisiones" },
-    ],
-  },
-  {
-    titulo: "REPORTES",
-    opciones: [
-      { nombre: "Indicadores" },
-      { nombre: "Impacto por comunidad" },
+      {
+        nombre: "Configuración de cuenta",
+        ruta: "/cuenta",
+      },
     ],
   },
 ];
@@ -149,7 +155,11 @@ function obtenerFechaActual() {
 }
 
 function PanelPrincipal() {
+  const esAdmin =
+    localStorage.getItem("rol") === "ADMIN";
   const [talleres, setTalleres] = useState([]);
+  const [solicitudesPorValidar, setSolicitudesPorValidar] =
+    useState(0);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
 
@@ -203,6 +213,39 @@ function PanelPrincipal() {
     cargarTalleres();
   }, [cargarTalleres]);
 
+  useEffect(() => {
+    if (!esAdmin) {
+      return;
+    }
+
+    const cargarSolicitudes = async () => {
+      try {
+        const respuesta = await fetch(
+          `${API_ARTESANOS}?estadoValidacion=EN_REVISION&page=0&size=1`,
+          {
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
+        );
+
+        if (!respuesta.ok) {
+          return;
+        }
+
+        const datos = await respuesta.json();
+        setSolicitudesPorValidar(
+          Number(datos?.totalElements) || 0,
+        );
+      } catch {
+        setSolicitudesPorValidar(0);
+      }
+    };
+
+    cargarSolicitudes();
+  }, [esAdmin]);
+
   const totalTalleres = talleres.length;
 
   const totalResponsables = useMemo(() => {
@@ -212,8 +255,6 @@ function PanelPrincipal() {
   const totalEspecialidades = useMemo(() => {
     return contarValoresUnicos(talleres, "especialidades");
   }, [talleres]);
-
-  const solicitudesPorValidar = 0;
 
   const talleresRecientes = useMemo(() => {
     return [...talleres]
@@ -326,20 +367,22 @@ function PanelPrincipal() {
           <p>especialidades registradas</p>
         </article>
 
-        <article className="tarjeta-indicador tarjeta-amarilla">
-          <div className="titulo-indicador">
-            <ShieldCheck size={19} />
-            <span>Solicitudes por validar</span>
-          </div>
+        {esAdmin && (
+          <article className="tarjeta-indicador tarjeta-amarilla">
+            <div className="titulo-indicador">
+              <ShieldCheck size={19} />
+              <span>Solicitudes por validar</span>
+            </div>
 
-          <strong className="valor-indicador">
-            {solicitudesPorValidar}
-          </strong>
+            <strong className="valor-indicador">
+              {solicitudesPorValidar}
+            </strong>
 
-          <p className="mensaje-secundario">
-            Módulo todavía no conectado
-          </p>
-        </article>
+            <p className="mensaje-secundario">
+              Perfiles en revisión
+            </p>
+          </article>
+        )}
       </section>
 
       <section className="zona-inferior">
@@ -556,7 +599,99 @@ function PanelPrincipal() {
 
 function Layout() {
   const navigate = useNavigate();
-  const sesion = obtenerSesion();
+  const location = useLocation();
+  const [parametros, setParametros] = useSearchParams();
+  const [sesion, setSesion] = useState(obtenerSesion);
+  const [busqueda, setBusqueda] = useState(
+    parametros.get("q") || "",
+  );
+  const [regiones, setRegiones] = useState([]);
+  const rutasConBusqueda = [
+    "/artesanos",
+    "/talleres",
+    "/artesanias",
+  ];
+  const mostrarBusqueda = rutasConBusqueda.includes(
+    location.pathname,
+  );
+  const seccionesMenu = obtenerSeccionesMenu(sesion.rol);
+
+  useEffect(() => {
+    const actualizarSesion = () => {
+      setSesion(obtenerSesion());
+    };
+
+    window.addEventListener(
+      "cuenta-actualizada",
+      actualizarSesion,
+    );
+
+    return () => {
+      window.removeEventListener(
+        "cuenta-actualizada",
+        actualizarSesion,
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    setBusqueda(parametros.get("q") || "");
+  }, [parametros]);
+
+  useEffect(() => {
+    if (!mostrarBusqueda || regiones.length > 0) {
+      return;
+    }
+
+    const cargarRegiones = async () => {
+      try {
+        const respuesta = await fetch(API_COMUNIDADES, {
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+
+        if (!respuesta.ok) {
+          return;
+        }
+
+        const datos = await respuesta.json();
+        const regionesUnicas = Array.from(
+          new Set(
+            (Array.isArray(datos) ? datos : [])
+              .map((comunidad) => comunidad.region?.trim())
+              .filter(Boolean),
+          ),
+        ).sort((regionA, regionB) =>
+          regionA.localeCompare(regionB, "es"),
+        );
+
+        setRegiones(regionesUnicas);
+      } catch {
+        setRegiones([]);
+      }
+    };
+
+    cargarRegiones();
+  }, [mostrarBusqueda, regiones.length]);
+
+  const cambiarParametro = (nombre, valor) => {
+    const siguientes = new URLSearchParams(parametros);
+
+    if (valor.trim()) {
+      siguientes.set(nombre, valor.trim());
+    } else {
+      siguientes.delete(nombre);
+    }
+
+    setParametros(siguientes);
+  };
+
+  const buscar = (evento) => {
+    evento.preventDefault();
+    cambiarParametro("q", busqueda);
+  };
 
   const cerrarSesion = () => {
     localStorage.removeItem("token");
@@ -575,24 +710,56 @@ function Layout() {
           </div>
 
           <div className="acciones-superiores">
-            <button
-              className="selector-region"
-              type="button"
-            >
-              <MapPin size={21} />
-              <span>Todas las ubicaciones</span>
-              <ChevronDown size={17} />
-            </button>
+            {mostrarBusqueda && (
+              <>
+                <label className="selector-region">
+                  <MapPin size={21} />
+                  <select
+                    value={parametros.get("region") || ""}
+                    onChange={(evento) =>
+                      cambiarParametro(
+                        "region",
+                        evento.target.value,
+                      )
+                    }
+                    aria-label="Filtrar por región"
+                  >
+                    <option value="">
+                      Todas las regiones
+                    </option>
+                    {regiones.map((region) => (
+                      <option value={region} key={region}>
+                        {region}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown size={17} />
+                </label>
 
-            <div className="buscador">
-              <Search size={21} />
+                <form
+                  className="buscador"
+                  onSubmit={buscar}
+                >
+                  <Search size={21} />
 
-              <input
-                type="search"
-                placeholder="Buscar artesano, taller o folio..."
-                aria-label="Buscar"
-              />
-            </div>
+                  <input
+                    type="search"
+                    value={busqueda}
+                    onChange={(evento) =>
+                      setBusqueda(evento.target.value)
+                    }
+                    placeholder={
+                      location.pathname === "/artesanos"
+                        ? "Buscar artesano, correo o comunidad..."
+                        : location.pathname === "/talleres"
+                          ? "Buscar taller, responsable o especialidad..."
+                          : "Buscar artesanía o taller..."
+                    }
+                    aria-label="Buscar en el catálogo"
+                  />
+                </form>
+              </>
+            )}
 
             <button
               type="button"
@@ -705,6 +872,14 @@ function RutaSoloAdmin() {
   return <Outlet />;
 }
 
+function RutaPorRoles({ roles }) {
+  if (!roles.includes(localStorage.getItem("rol"))) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -720,7 +895,20 @@ function App() {
               path="/artesanias"
               element={<Artesanias />}
             />
+            <Route
+              path="/especialidades"
+              element={<Especialidades />}
+            />
+            <Route path="/resenas" element={<Resenas />} />
+            <Route
+              path="/cuenta"
+              element={<ConfiguracionCuenta />}
+            />
             <Route element={<RutaSoloAdmin />}>
+              <Route
+                path="/solicitudes-registro"
+                element={<SolicitudesRegistro />}
+              />
               <Route
                 path="/artesanos/nuevo"
                 element={<RegistrarArtesano />}
@@ -733,9 +921,21 @@ function App() {
                 path="/talleres/nuevo"
                 element={<RegistrarTaller />}
               />
+            </Route>
+            <Route
+              element={
+                <RutaPorRoles
+                  roles={["ADMIN", "ARTESANO"]}
+                />
+              }
+            >
               <Route
                 path="/talleres/editar/:id"
                 element={<EditarTaller />}
+              />
+              <Route
+                path="/artesanias/nueva"
+                element={<RegistrarArtesania />}
               />
               <Route
                 path="/artesanias/editar/:id"

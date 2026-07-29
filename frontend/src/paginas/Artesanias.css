@@ -51,6 +51,32 @@
     transform 0.2s ease;
 }
 
+.acciones-encabezado-artesanias {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.boton-registrar-artesania {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 0 18px;
+  border: 1px solid var(--verde, #496453);
+  border-radius: 10px;
+  background: var(--verde, #496453);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+}
+
+.boton-registrar-artesania:hover {
+  background: var(--verde-oscuro, #3c5547);
+}
+
 .boton-actualizar-artesanias:hover:not(:disabled) {
   background: #f0f4f1;
   transform: translateY(-1px);

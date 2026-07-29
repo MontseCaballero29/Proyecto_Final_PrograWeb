@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import {
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
 
 import {
   AlertCircle,
@@ -8,6 +11,7 @@ import {
   LoaderCircle,
   PackageSearch,
   Pencil,
+  Plus,
   RefreshCw,
 } from "lucide-react";
 
@@ -15,6 +19,8 @@ import "./Artesanias.css";
 
 const API_ARTESANIAS =
   "http://localhost:8090/api/artesanias";
+const API_TALLERES =
+  "http://localhost:8090/api/talleres";
 
 function extraerLista(datos) {
   if (Array.isArray(datos)) {
@@ -86,7 +92,12 @@ function ImagenArtesania({ src, nombre }) {
 
 function Artesanias() {
   const navigate = useNavigate();
+  const [parametrosBusqueda] = useSearchParams();
+  const busqueda = parametrosBusqueda.get("q") || "";
+  const region = parametrosBusqueda.get("region") || "";
   const [artesanias, setArtesanias] = useState([]);
+  const [talleresPropios, setTalleresPropios] =
+    useState(new Set());
   const [totalArtesanias, setTotalArtesanias] =
     useState(0);
   const [pagina, setPagina] = useState(0);
@@ -96,8 +107,9 @@ function Artesanias() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
 
-  const esAdmin =
-    localStorage.getItem("rol") === "ADMIN";
+  const rol = localStorage.getItem("rol");
+  const esAdmin = rol === "ADMIN";
+  const esArtesano = rol === "ARTESANO";
 
   const cargarArtesanias = useCallback(async (numeroPagina = 0) => {
     try {
@@ -112,8 +124,21 @@ function Artesanias() {
         );
       }
 
+      const parametros = new URLSearchParams({
+        page: String(numeroPagina),
+        size: "10",
+      });
+
+      if (busqueda.trim()) {
+        parametros.set("busqueda", busqueda.trim());
+      }
+
+      if (region.trim()) {
+        parametros.set("region", region.trim());
+      }
+
       const respuesta = await fetch(
-        `${API_ARTESANIAS}?page=${numeroPagina}&size=10`,
+        `${API_ARTESANIAS}?${parametros.toString()}`,
         {
           method: "GET",
           headers: {
@@ -170,11 +195,51 @@ function Artesanias() {
     } finally {
       setCargando(false);
     }
-  }, []);
+  }, [busqueda, region]);
+
+  const cargarTalleresPropios = useCallback(async () => {
+    if (!esArtesano) {
+      setTalleresPropios(new Set());
+      return;
+    }
+
+    try {
+      const respuesta = await fetch(
+        `${API_TALLERES}/mios?page=0&size=1000`,
+        {
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+
+      if (!respuesta.ok) {
+        setTalleresPropios(new Set());
+        return;
+      }
+
+      const datos = await respuesta.json();
+      setTalleresPropios(
+        new Set(
+          (Array.isArray(datos?.content)
+            ? datos.content
+            : []
+          ).map((taller) => Number(taller.id)),
+        ),
+      );
+    } catch {
+      setTalleresPropios(new Set());
+    }
+  }, [esArtesano]);
 
   useEffect(() => {
     cargarArtesanias(0);
   }, [cargarArtesanias]);
+
+  useEffect(() => {
+    cargarTalleresPropios();
+  }, [cargarTalleresPropios]);
 
   return (
     <section className="pagina-artesanias">
@@ -192,18 +257,31 @@ function Artesanias() {
           </p>
         </div>
 
-        <button
-          className="boton-actualizar-artesanias"
-          type="button"
-          onClick={() => cargarArtesanias(pagina)}
-          disabled={cargando}
-        >
-          <RefreshCw
-            size={18}
-            className={cargando ? "icono-girando" : ""}
-          />
-          Actualizar
-        </button>
+        <div className="acciones-encabezado-artesanias">
+          {(esAdmin || esArtesano) && (
+            <button
+              className="boton-registrar-artesania"
+              type="button"
+              onClick={() => navigate("/artesanias/nueva")}
+            >
+              <Plus size={18} />
+              Agregar artesanía
+            </button>
+          )}
+
+          <button
+            className="boton-actualizar-artesanias"
+            type="button"
+            onClick={() => cargarArtesanias(pagina)}
+            disabled={cargando}
+          >
+            <RefreshCw
+              size={18}
+              className={cargando ? "icono-girando" : ""}
+            />
+            Actualizar
+          </button>
+        </div>
       </div>
 
       <div className="detalle-artesanal" />
@@ -282,7 +360,7 @@ function Artesanias() {
                     <th scope="col">Taller</th>
                     <th scope="col">Precio</th>
                     <th scope="col">Existencia</th>
-                    {esAdmin && (
+                    {(esAdmin || esArtesano) && (
                       <th scope="col">Acciones</th>
                     )}
                   </tr>
@@ -347,21 +425,26 @@ function Artesanias() {
                         </span>
                       </td>
 
-                      {esAdmin && (
+                      {(esAdmin || esArtesano) && (
                         <td>
-                          <button
-                            className="boton-editar-artesania"
-                            type="button"
-                            onClick={() =>
-                              navigate(
-                                `/artesanias/editar/${artesania.id}`,
-                              )
-                            }
-                            aria-label={`Editar ${artesania.nombre}`}
-                          >
-                            <Pencil size={17} />
-                            Editar
-                          </button>
+                          {(esAdmin ||
+                            talleresPropios.has(
+                              Number(artesania.tallerId),
+                            )) && (
+                            <button
+                              className="boton-editar-artesania"
+                              type="button"
+                              onClick={() =>
+                                navigate(
+                                  `/artesanias/editar/${artesania.id}`,
+                                )
+                              }
+                              aria-label={`Editar ${artesania.nombre}`}
+                            >
+                              <Pencil size={17} />
+                              Editar
+                            </button>
+                          )}
                         </td>
                       )}
                     </tr>

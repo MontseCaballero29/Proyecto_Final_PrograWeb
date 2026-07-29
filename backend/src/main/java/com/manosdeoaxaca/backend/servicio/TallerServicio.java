@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,9 +19,11 @@ import com.manosdeoaxaca.backend.model.Artesano;
 import com.manosdeoaxaca.backend.model.Comunidad;
 import com.manosdeoaxaca.backend.model.Especialidad;
 import com.manosdeoaxaca.backend.model.Taller;
+import com.manosdeoaxaca.backend.model.Usuario;
 import com.manosdeoaxaca.backend.repositorio.ArtesanoRepositorio;
 import com.manosdeoaxaca.backend.repositorio.ComunidadRepositorio;
 import com.manosdeoaxaca.backend.repositorio.TallerRepositorio;
+import com.manosdeoaxaca.backend.repositorio.UsuarioRepositorio;
 
 @Service
 @Transactional(readOnly = true)
@@ -29,31 +32,39 @@ public class TallerServicio {
     private final TallerRepositorio tallerRepositorio;
     private final ComunidadRepositorio comunidadRepositorio;
     private final ArtesanoRepositorio artesanoRepositorio;
+    private final UsuarioRepositorio usuarioRepositorio;
 
     public TallerServicio(
             TallerRepositorio tallerRepositorio,
             ComunidadRepositorio comunidadRepositorio,
-            ArtesanoRepositorio artesanoRepositorio) {
+            ArtesanoRepositorio artesanoRepositorio,
+            UsuarioRepositorio usuarioRepositorio) {
         this.tallerRepositorio = tallerRepositorio;
         this.comunidadRepositorio = comunidadRepositorio;
         this.artesanoRepositorio = artesanoRepositorio;
+        this.usuarioRepositorio = usuarioRepositorio;
     }
 
     public Page<TallerRespuesta> listar(
             String municipio,
+            String busqueda,
+            String region,
             Pageable pageable) {
-        Page<Taller> resultado;
-
-        if (municipio == null || municipio.isBlank()) {
-            resultado = tallerRepositorio.findAll(pageable);
-        } else {
-            resultado = tallerRepositorio
-                    .findByMunicipioContainingIgnoreCase(
-                            municipio.trim(),
-                            pageable);
-        }
+        Page<Taller> resultado = tallerRepositorio.buscar(
+                normalizarFiltro(municipio),
+                normalizarFiltro(busqueda),
+                normalizarFiltro(region),
+                pageable);
 
         return resultado.map(this::convertirARespuesta);
+    }
+
+    public Page<TallerRespuesta> listarPorArtesano(
+            String correo,
+            Pageable pageable) {
+        return tallerRepositorio
+                .buscarPorArtesano(correo, pageable)
+                .map(this::convertirARespuesta);
     }
 
     public TallerRespuesta buscarPorId(Long id) {
@@ -77,12 +88,23 @@ public class TallerServicio {
     @Transactional
     public TallerRespuesta actualizar(
             Long id,
-            TallerPeticion peticion) {
+            TallerPeticion peticion,
+            String correo) {
         Taller taller = buscarEntidadPorId(id);
+        Usuario usuario = buscarUsuario(correo);
+        boolean esAdmin = "ADMIN".equals(
+                usuario.getRol().getNombre());
+
+        if (!esAdmin && !perteneceAlTaller(taller, correo)) {
+            throw new AccessDeniedException(
+                    "No puedes modificar un taller que no te pertenece");
+        }
+
         Comunidad comunidad = buscarComunidad(
                 peticion.getComunidadId());
-        Set<Artesano> artesanos = buscarArtesanos(
-                peticion.getArtesanoIds());
+        Set<Artesano> artesanos = esAdmin
+                ? buscarArtesanos(peticion.getArtesanoIds())
+                : new HashSet<>(taller.getArtesanos());
 
         copiarDatos(peticion, taller, comunidad, artesanos);
 
@@ -114,6 +136,25 @@ public class TallerServicio {
                 .orElseThrow(() ->
                         new RecursoNoEncontradoExcepcion(
                                 "No existe la comunidad con id: " + id));
+    }
+
+    private Usuario buscarUsuario(String correo) {
+        return usuarioRepositorio
+                .findByCorreo(correo)
+                .orElseThrow(() ->
+                        new RecursoNoEncontradoExcepcion(
+                                "No existe la cuenta solicitada"));
+    }
+
+    private boolean perteneceAlTaller(
+            Taller taller,
+            String correo) {
+        return taller.getArtesanos()
+                .stream()
+                .anyMatch(artesano ->
+                        artesano.getUsuario()
+                                .getCorreo()
+                                .equalsIgnoreCase(correo));
     }
 
     private Set<Artesano> buscarArtesanos(
@@ -212,5 +253,11 @@ public class TallerServicio {
         }
 
         return texto.trim();
+    }
+
+    private String normalizarFiltro(String texto) {
+        return texto == null || texto.isBlank()
+                ? null
+                : texto.trim();
     }
 }

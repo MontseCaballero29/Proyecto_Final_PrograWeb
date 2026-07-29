@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import {
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
 
 import {
   AlertCircle,
@@ -19,10 +22,16 @@ const API_TALLERES = "http://localhost:8090/api/talleres";
 
 function Talleres() {
   const navigate = useNavigate();
-  const esAdmin =
-    localStorage.getItem("rol") === "ADMIN";
+  const [parametrosBusqueda] = useSearchParams();
+  const rol = localStorage.getItem("rol");
+  const esAdmin = rol === "ADMIN";
+  const esArtesano = rol === "ARTESANO";
+  const busqueda = parametrosBusqueda.get("q") || "";
+  const region = parametrosBusqueda.get("region") || "";
 
   const [talleres, setTalleres] = useState([]);
+  const [talleresPropios, setTalleresPropios] =
+    useState(new Set());
   const [pagina, setPagina] = useState(0);
   const [totalPaginas, setTotalPaginas] = useState(0);
   const [totalTalleres, setTotalTalleres] = useState(0);
@@ -58,6 +67,14 @@ function Talleres() {
           "municipio",
           municipioAplicado.trim(),
         );
+      }
+
+      if (busqueda.trim()) {
+        parametros.set("busqueda", busqueda.trim());
+      }
+
+      if (region.trim()) {
+        parametros.set("region", region.trim());
       }
 
       const respuesta = await fetch(
@@ -127,11 +144,51 @@ function Talleres() {
     } finally {
       setCargando(false);
     }
-  }, [municipioAplicado]);
+  }, [busqueda, municipioAplicado, region]);
+
+  const cargarTalleresPropios = useCallback(async () => {
+    if (!esArtesano) {
+      setTalleresPropios(new Set());
+      return;
+    }
+
+    try {
+      const respuesta = await fetch(
+        `${API_TALLERES}/mios?page=0&size=1000`,
+        {
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+
+      if (!respuesta.ok) {
+        setTalleresPropios(new Set());
+        return;
+      }
+
+      const datos = await respuesta.json();
+      setTalleresPropios(
+        new Set(
+          (Array.isArray(datos?.content)
+            ? datos.content
+            : []
+          ).map((taller) => Number(taller.id)),
+        ),
+      );
+    } catch {
+      setTalleresPropios(new Set());
+    }
+  }, [esArtesano]);
 
   useEffect(() => {
     cargarTalleres(0);
   }, [cargarTalleres]);
+
+  useEffect(() => {
+    cargarTalleresPropios();
+  }, [cargarTalleresPropios]);
 
   const aplicarFiltro = (evento) => {
     evento.preventDefault();
@@ -344,7 +401,9 @@ function Talleres() {
                     <th>Especialidad</th>
                     <th>Ubicación</th>
                     <th>Descripción</th>
-                    {esAdmin && <th>Acciones</th>}
+                    {(esAdmin || esArtesano) && (
+                      <th>Acciones</th>
+                    )}
                   </tr>
                 </thead>
 
@@ -419,20 +478,25 @@ function Talleres() {
 
                         <td>{descripcion}</td>
 
-                        {esAdmin && (
+                        {(esAdmin || esArtesano) && (
                           <td>
-                            <button
-                              className="boton-editar-taller"
-                              type="button"
-                              onClick={() =>
-                                navigate(
-                                  `/talleres/editar/${taller.id}`,
-                                )
-                              }
-                            >
-                              <Pencil size={16} />
-                              <span>Editar</span>
-                            </button>
+                            {(esAdmin ||
+                              talleresPropios.has(
+                                Number(taller.id),
+                              )) && (
+                              <button
+                                className="boton-editar-taller"
+                                type="button"
+                                onClick={() =>
+                                  navigate(
+                                    `/talleres/editar/${taller.id}`,
+                                  )
+                                }
+                              >
+                                <Pencil size={16} />
+                                <span>Editar</span>
+                              </button>
+                            )}
                           </td>
                         )}
                       </tr>

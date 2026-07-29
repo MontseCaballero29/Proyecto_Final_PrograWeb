@@ -38,13 +38,20 @@ public class ArtesanoControlador {
     public ResponseEntity<Page<ArtesanoRespuesta>> listar(
             @RequestParam(required = false) Long comunidadId,
             @RequestParam(required = false) String estadoValidacion,
+            @RequestParam(required = false) String busqueda,
+            @RequestParam(required = false) String region,
             @PageableDefault(
                     size = 10,
                     sort = "id",
                     direction = Sort.Direction.ASC)
             Pageable pageable) {
         return ResponseEntity.ok(
-                artesanoServicio.buscarConFiltros(comunidadId, estadoValidacion, pageable));
+                artesanoServicio.buscarConFiltros(
+                        comunidadId,
+                        estadoValidacion,
+                        busqueda,
+                        region,
+                        pageable));
     }
 
     @GetMapping("/{id}")

@@ -29,6 +29,16 @@ public class ManejadorGlobalErrores {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(cuerpo);
     }
 
+    @ExceptionHandler(SolicitudInvalidaExcepcion.class)
+    public ResponseEntity<RespuestaError> manejarSolicitudInvalida(
+            SolicitudInvalidaExcepcion excepcion) {
+        RespuestaError cuerpo = new RespuestaError(
+                HttpStatus.BAD_REQUEST.value(),
+                "Solicitud inválida",
+                excepcion.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(cuerpo);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<RespuestaError> manejarValidacion(MethodArgumentNotValidException excepcion) {
         String primerError = excepcion.getBindingResult().getFieldErrors().stream()

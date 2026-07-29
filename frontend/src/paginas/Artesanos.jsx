@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import {
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
 import {
   AlertCircle,
   LoaderCircle,
@@ -16,6 +19,9 @@ const API_ARTESANOS =
 
 function Artesanos() {
   const navigate = useNavigate();
+  const [parametrosBusqueda] = useSearchParams();
+  const busqueda = parametrosBusqueda.get("q") || "";
+  const region = parametrosBusqueda.get("region") || "";
   const esAdmin =
     localStorage.getItem("rol") === "ADMIN";
   const [artesanos, setArtesanos] = useState([]);
@@ -33,8 +39,21 @@ function Artesanos() {
       setError("");
 
       const token = localStorage.getItem("token");
+      const parametros = new URLSearchParams({
+        page: String(numeroPagina),
+        size: "10",
+      });
+
+      if (busqueda.trim()) {
+        parametros.set("busqueda", busqueda.trim());
+      }
+
+      if (region.trim()) {
+        parametros.set("region", region.trim());
+      }
+
       const respuesta = await fetch(
-        `${API_ARTESANOS}?page=${numeroPagina}&size=10`,
+        `${API_ARTESANOS}?${parametros.toString()}`,
         {
           headers: {
             Accept: "application/json",
@@ -72,7 +91,7 @@ function Artesanos() {
     } finally {
       setCargando(false);
     }
-  }, []);
+  }, [busqueda, region]);
 
   useEffect(() => {
     cargarArtesanos(0);
