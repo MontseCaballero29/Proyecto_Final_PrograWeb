@@ -609,3 +609,31 @@
     line-height: 1.4;
   }
 }
+
+
+.acciones-tabla-talleres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.boton-eliminar-taller {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid #a13b35;
+  border-radius: 8px;
+  background: #fff;
+  color: #a13b35;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.boton-eliminar-taller:hover {
+  background: #a13b35;
+  color: #fff;
+}

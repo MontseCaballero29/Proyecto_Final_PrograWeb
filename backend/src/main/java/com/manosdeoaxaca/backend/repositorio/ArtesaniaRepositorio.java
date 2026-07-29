@@ -10,6 +10,8 @@ import com.manosdeoaxaca.backend.model.Artesania;
 
 public interface ArtesaniaRepositorio extends JpaRepository<Artesania, Long> {
 
+    void deleteAllByTallerId(Long tallerId);
+
     @Query(
         value = """
             SELECT DISTINCT ar

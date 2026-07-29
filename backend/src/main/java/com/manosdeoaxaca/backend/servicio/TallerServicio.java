@@ -20,6 +20,7 @@ import com.manosdeoaxaca.backend.model.Comunidad;
 import com.manosdeoaxaca.backend.model.Especialidad;
 import com.manosdeoaxaca.backend.model.Taller;
 import com.manosdeoaxaca.backend.model.Usuario;
+import com.manosdeoaxaca.backend.repositorio.ArtesaniaRepositorio;
 import com.manosdeoaxaca.backend.repositorio.ArtesanoRepositorio;
 import com.manosdeoaxaca.backend.repositorio.ComunidadRepositorio;
 import com.manosdeoaxaca.backend.repositorio.TallerRepositorio;
@@ -30,16 +31,19 @@ import com.manosdeoaxaca.backend.repositorio.UsuarioRepositorio;
 public class TallerServicio {
 
     private final TallerRepositorio tallerRepositorio;
+    private final ArtesaniaRepositorio artesaniaRepositorio;
     private final ComunidadRepositorio comunidadRepositorio;
     private final ArtesanoRepositorio artesanoRepositorio;
     private final UsuarioRepositorio usuarioRepositorio;
 
     public TallerServicio(
             TallerRepositorio tallerRepositorio,
+            ArtesaniaRepositorio artesaniaRepositorio,
             ComunidadRepositorio comunidadRepositorio,
             ArtesanoRepositorio artesanoRepositorio,
             UsuarioRepositorio usuarioRepositorio) {
         this.tallerRepositorio = tallerRepositorio;
+        this.artesaniaRepositorio = artesaniaRepositorio;
         this.comunidadRepositorio = comunidadRepositorio;
         this.artesanoRepositorio = artesanoRepositorio;
         this.usuarioRepositorio = usuarioRepositorio;
@@ -114,12 +118,13 @@ public class TallerServicio {
 
     @Transactional
     public void eliminar(Long id) {
-        if (!tallerRepositorio.existsById(id)) {
-            throw new RecursoNoEncontradoExcepcion(
-                    "No existe el taller con id: " + id);
-        }
+        Taller taller = buscarEntidadPorId(id);
 
-        tallerRepositorio.deleteById(id);
+        // La FK de artesanía no tiene ON DELETE CASCADE.
+        // Primero se eliminan las artesanías del taller para evitar
+        // que la base de datos rechace la eliminación.
+        artesaniaRepositorio.deleteAllByTallerId(id);
+        tallerRepositorio.delete(taller);
     }
 
     private Taller buscarEntidadPorId(Long id) {

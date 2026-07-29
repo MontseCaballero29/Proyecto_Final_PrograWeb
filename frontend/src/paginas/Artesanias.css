@@ -378,3 +378,29 @@
     width: 100%;
   }
 }
+
+
+.acciones-tabla-artesanias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.boton-eliminar-artesania {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 12px;
+  border: 1px solid #a13b35;
+  border-radius: 8px;
+  background: #fff;
+  color: #a13b35;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.boton-eliminar-artesania:hover {
+  background: #a13b35;
+  color: #fff;
+}

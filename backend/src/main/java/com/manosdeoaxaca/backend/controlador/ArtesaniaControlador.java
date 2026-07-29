@@ -95,9 +95,11 @@ public class ArtesaniaControlador {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        artesaniaServicio.eliminar(id);
+    @PreAuthorize("hasAnyRole('ADMIN', 'ARTESANO')")
+    public ResponseEntity<Void> eliminar(
+            @PathVariable Long id,
+            Authentication authentication) {
+        artesaniaServicio.eliminar(id, authentication.getName());
         return ResponseEntity.noContent().build();
     }
 }

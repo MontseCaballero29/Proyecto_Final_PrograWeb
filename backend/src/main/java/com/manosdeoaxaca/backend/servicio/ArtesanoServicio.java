@@ -115,12 +115,17 @@ public class ArtesanoServicio {
 
     @Transactional
     public void eliminar(Long id) {
-        if (!artesanoRepositorio.existsById(id)) {
-            throw new RecursoNoEncontradoExcepcion(
-                    "No existe el artesano con id: " + id);
-        }
+        Artesano artesano = buscarEntidadPorId(id);
+        Usuario usuario = artesano.getUsuario();
+        Rol rolVisitante = rolRepositorio
+                .findByNombre("VISITANTE")
+                .orElseThrow(() ->
+                        new RecursoNoEncontradoExcepcion(
+                                "No existe el rol VISITANTE"));
 
-        artesanoRepositorio.deleteById(id);
+        artesanoRepositorio.delete(artesano);
+        usuario.setRol(rolVisitante);
+        usuarioRepositorio.save(usuario);
     }
 
     public Page<ArtesanoRespuesta> buscarConFiltros(

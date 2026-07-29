@@ -13,9 +13,11 @@ import {
   Plus,
   RefreshCw,
   Search,
+  Trash2,
   X,
 } from "lucide-react";
 
+import ModalConfirmacion from "../componentes/ModalConfirmacion";
 import "./Talleres.css";
 
 const API_TALLERES = "http://localhost:8090/api/talleres";
@@ -39,6 +41,9 @@ function Talleres() {
   const [esUltima, setEsUltima] = useState(true);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
+  const [mensajeAccion, setMensajeAccion] = useState("");
+  const [tallerAEliminar, setTallerAEliminar] = useState(null);
+  const [eliminando, setEliminando] = useState(false);
 
   const [municipio, setMunicipio] = useState("");
   const [municipioAplicado, setMunicipioAplicado] =
@@ -190,6 +195,50 @@ function Talleres() {
     cargarTalleresPropios();
   }, [cargarTalleresPropios]);
 
+  const eliminarTaller = async () => {
+    if (!esAdmin || !tallerAEliminar) {
+      return;
+    }
+
+    try {
+      setEliminando(true);
+      setMensajeAccion("");
+
+      const respuesta = await fetch(
+        `${API_TALLERES}/${tallerAEliminar.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+
+      if (!respuesta.ok) {
+        throw new Error(
+          `No se pudo eliminar el taller. Código: ${respuesta.status}`,
+        );
+      }
+
+      const paginaDestino =
+        talleres.length === 1 && pagina > 0
+          ? pagina - 1
+          : pagina;
+
+      setTallerAEliminar(null);
+      await cargarTalleres(paginaDestino);
+    } catch (errorPeticion) {
+      setMensajeAccion(
+        errorPeticion.message ||
+          "No fue posible eliminar el taller.",
+      );
+      setTallerAEliminar(null);
+    } finally {
+      setEliminando(false);
+    }
+  };
+
   const aplicarFiltro = (evento) => {
     evento.preventDefault();
     setMunicipioAplicado(municipio.trim());
@@ -320,6 +369,10 @@ function Talleres() {
           <strong>{totalTalleres}</strong>
         </div>
       </article>
+
+      {mensajeAccion && (
+        <p className="mensaje-accion-eliminacion">{mensajeAccion}</p>
+      )}
 
       <article className="contenedor-listado-talleres">
         <div className="titulo-listado-talleres">
@@ -480,23 +533,40 @@ function Talleres() {
 
                         {(esAdmin || esArtesano) && (
                           <td>
-                            {(esAdmin ||
-                              talleresPropios.has(
-                                Number(taller.id),
-                              )) && (
-                              <button
-                                className="boton-editar-taller"
-                                type="button"
-                                onClick={() =>
-                                  navigate(
-                                    `/talleres/editar/${taller.id}`,
-                                  )
-                                }
-                              >
-                                <Pencil size={16} />
-                                <span>Editar</span>
-                              </button>
-                            )}
+                            <div className="acciones-tabla-talleres">
+                              {(esAdmin ||
+                                talleresPropios.has(
+                                  Number(taller.id),
+                                )) && (
+                                <button
+                                  className="boton-editar-taller"
+                                  type="button"
+                                  onClick={() =>
+                                    navigate(
+                                      `/talleres/editar/${taller.id}`,
+                                    )
+                                  }
+                                >
+                                  <Pencil size={16} />
+                                  <span>Editar</span>
+                                </button>
+                              )}
+
+                              {esAdmin && (
+                                <button
+                                  className="boton-eliminar-taller"
+                                  type="button"
+                                  onClick={() => {
+                                    setMensajeAccion("");
+                                    setTallerAEliminar(taller);
+                                  }}
+                                  aria-label={`Eliminar ${nombre}`}
+                                >
+                                  <Trash2 size={16} />
+                                  <span>Eliminar</span>
+                                </button>
+                              )}
+                            </div>
                           </td>
                         )}
                       </tr>
@@ -534,6 +604,23 @@ function Talleres() {
             </>
           )}
       </article>
+
+      <ModalConfirmacion
+        abierto={Boolean(tallerAEliminar)}
+        titulo="Eliminar taller"
+        mensaje={
+          tallerAEliminar
+            ? `¿Confirmas que deseas eliminar el taller “${tallerAEliminar.nombre}”? Esta acción no se puede deshacer.`
+            : ""
+        }
+        procesando={eliminando}
+        onCancelar={() => {
+          if (!eliminando) {
+            setTallerAEliminar(null);
+          }
+        }}
+        onConfirmar={eliminarTaller}
+      />
     </section>
   );
 }
