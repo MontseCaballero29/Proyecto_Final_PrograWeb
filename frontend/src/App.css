@@ -915,3 +915,49 @@ tbody tr:last-child td {
   color: var(--texto-suave);
   font-size: 0.88rem;
 }
+
+.mensaje-estado {
+  margin-top: 24px;
+  color: var(--texto-suave);
+}
+
+.rejilla-especialidades {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.tarjeta-especialidad {
+  position: relative;
+  padding: 24px 22px;
+  border: 1px solid var(--borde);
+  border-radius: 11px;
+  background: var(--blanco);
+  box-shadow: 0 2px 4px rgba(50, 42, 32, 0.06);
+  overflow: hidden;
+}
+
+.tarjeta-especialidad::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 4px;
+  background: var(--verde);
+}
+
+.tarjeta-especialidad h3 {
+  margin: 6px 0 10px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.25rem;
+  color: var(--texto);
+}
+
+.tarjeta-especialidad p {
+  margin: 0;
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}

@@ -33,6 +33,7 @@ import EditarTaller from "./paginas/EditarTaller";
 import Artesanos from "./paginas/Artesanos";
 import Artesanias from "./paginas/Artesanias";
 import EditarArtesania from "./paginas/EditarArtesania";
+import Especialidades from "./paginas/Especialidades";
 
 import "./App.css";
 
@@ -74,9 +75,8 @@ const seccionesMenu = [
     opciones: [
       { nombre: "Artesanos" , ruta: "/artesanos"},
       { nombre: "Talleres", ruta: "/talleres" },
-      { nombre: "Experiencias" },
       { nombre: "Artesanías", ruta: "/artesanias" },
-      { nombre: "Taxonomías" },
+      { nombre: "Especialidades", ruta: "/especialidades" },
     ],
   },
   {
@@ -694,6 +694,7 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<PanelPrincipal />} />
             <Route path="/artesanos" element={<Artesanos />} />
+            <Route path="/especialidades" element={<Especialidades />} />
           <Route path="/talleres" element={<Talleres />} />
             <Route
               path="/artesanias"
