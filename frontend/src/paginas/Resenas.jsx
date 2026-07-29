@@ -9,6 +9,7 @@ import {
   Trash2,
 } from "lucide-react";
 
+import ModalConfirmacion from "../componentes/ModalConfirmacion";
 import "./Resenas.css";
 
 const API_RESENAS =
@@ -70,6 +71,9 @@ function Resenas() {
   const [cargandoRecursos, setCargandoRecursos] =
     useState(esVisitante);
   const [publicando, setPublicando] = useState(false);
+  const [resenaAEliminar, setResenaAEliminar] =
+    useState(null);
+  const [eliminando, setEliminando] = useState(false);
   const [error, setError] = useState("");
   const [mensaje, setMensaje] = useState("");
 
@@ -216,18 +220,22 @@ function Resenas() {
     }
   };
 
-  const eliminar = async (id) => {
-    if (!window.confirm("¿Deseas eliminar esta reseña?")) {
+  const eliminar = async () => {
+    if (!resenaAEliminar) {
       return;
     }
 
     try {
-      const respuesta = await fetch(`${API_RESENAS}/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+      setEliminando(true);
+      const respuesta = await fetch(
+        `${API_RESENAS}/${resenaAEliminar.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         },
-      });
+      );
 
       if (!respuesta.ok) {
         throw new Error(
@@ -238,9 +246,13 @@ function Resenas() {
         );
       }
 
+      setResenaAEliminar(null);
       await cargarResenas(pagina);
     } catch (errorPeticion) {
       setError(errorPeticion.message);
+      setResenaAEliminar(null);
+    } finally {
+      setEliminando(false);
     }
   };
 
@@ -439,7 +451,9 @@ function Resenas() {
                     {puedeEliminar && (
                       <button
                         type="button"
-                        onClick={() => eliminar(resena.id)}
+                        onClick={() =>
+                          setResenaAEliminar(resena)
+                        }
                         aria-label="Eliminar reseña"
                       >
                         <Trash2 size={17} />
@@ -505,6 +519,19 @@ function Resenas() {
           </div>
         )}
       </section>
+
+      <ModalConfirmacion
+        abierto={Boolean(resenaAEliminar)}
+        titulo="Eliminar reseña"
+        mensaje={
+          resenaAEliminar
+            ? `¿Confirmas que deseas eliminar la reseña sobre “${resenaAEliminar.recursoNombre}”? Esta acción no se puede deshacer.`
+            : ""
+        }
+        procesando={eliminando}
+        onCancelar={() => setResenaAEliminar(null)}
+        onConfirmar={eliminar}
+      />
     </section>
   );
 }

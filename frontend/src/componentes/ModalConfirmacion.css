@@ -1,0 +1,146 @@
+.fondo-modal-confirmacion {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(31, 32, 29, 0.58);
+  backdrop-filter: blur(3px);
+}
+
+.modal-confirmacion {
+  width: min(100%, 480px);
+  overflow: hidden;
+  border: 1px solid #ddd5c8;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(20, 22, 20, 0.25);
+  animation: aparecer-modal-confirmacion 160ms ease-out;
+}
+
+.cabecera-modal-confirmacion {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 24px 24px 16px;
+}
+
+.titulo-modal-confirmacion {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.icono-modal-confirmacion {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #fbe9e7;
+  color: #a13b35;
+}
+
+.titulo-modal-confirmacion h3 {
+  margin: 0;
+  color: #272823;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 24px;
+}
+
+.boton-cerrar-modal {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 36px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #686c67;
+}
+
+.boton-cerrar-modal:hover {
+  background: #f2efe9;
+}
+
+.mensaje-modal-confirmacion {
+  margin: 0;
+  padding: 0 24px 24px;
+  color: #5c605b;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.acciones-modal-confirmacion {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 18px 24px 22px;
+  border-top: 1px solid #ebe5da;
+  background: #fbfaf6;
+}
+
+.acciones-modal-confirmacion button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 18px;
+  border-radius: 9px;
+  font: inherit;
+  font-weight: 750;
+}
+
+.boton-cancelar-modal {
+  border: 1px solid #d9d2c7;
+  background: #fff;
+  color: #475248;
+}
+
+.boton-confirmar-modal {
+  border: 1px solid #9f3b35;
+  background: #a13b35;
+  color: #fff;
+}
+
+.acciones-modal-confirmacion button:disabled,
+.boton-cerrar-modal:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+@keyframes aparecer-modal-confirmacion {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 520px) {
+  .fondo-modal-confirmacion {
+    align-items: end;
+    padding: 12px;
+  }
+
+  .modal-confirmacion {
+    border-radius: 15px;
+  }
+
+  .acciones-modal-confirmacion {
+    flex-direction: column-reverse;
+  }
+
+  .acciones-modal-confirmacion button {
+    width: 100%;
+  }
+}
