@@ -14,8 +14,7 @@ import {
 
 import "./Artesanos.css";
 
-const API_ARTESANOS =
-  "http://localhost:8090/api/artesanos";
+const API_ARTESANOS = `${import.meta.env.VITE_API_URL}/api/artesanos`;
 
 function Artesanos() {
   const navigate = useNavigate();

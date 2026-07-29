@@ -2,7 +2,7 @@ import { useState } from "react";
 import logo from "../assets/logo.jpeg";
 import { Link, useNavigate } from "react-router-dom";
 
-const API_REGISTRO = "http://localhost:8090/api/auth/register";
+const API_REGISTRO = `${import.meta.env.VITE_API_URL}/api/auth/register`;
 
 const PATRON_PASSWORD = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 const PATRON_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

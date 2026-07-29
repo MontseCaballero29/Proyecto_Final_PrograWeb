@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-const API_ESPECIALIDADES = "http://localhost:8090/api/especialidades";
+const API_ESPECIALIDADES = `${import.meta.env.VITE_API_URL}/api/especialidades`;
 
 function Especialidades() {
   const [especialidades, setEspecialidades] = useState([]);
