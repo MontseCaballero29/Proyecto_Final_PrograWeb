@@ -35,7 +35,6 @@ import RegistrarArtesano from "./paginas/RegistrarArtesano";
 import EditarArtesano from "./paginas/EditarArtesano";
 import Artesanias from "./paginas/Artesanias";
 import EditarArtesania from "./paginas/EditarArtesania";
-import Especialidades from "./paginas/Especialidades";
 
 import "./App.css";
 
@@ -77,8 +76,9 @@ const seccionesMenu = [
     opciones: [
       { nombre: "Artesanos" , ruta: "/artesanos"},
       { nombre: "Talleres", ruta: "/talleres" },
+      { nombre: "Experiencias" },
       { nombre: "Artesanías", ruta: "/artesanias" },
-      { nombre: "Especialidades", ruta: "/especialidades" },
+      { nombre: "Taxonomías" },
     ],
   },
   {
@@ -125,7 +125,12 @@ function obtenerTexto(valor, valorPredeterminado) {
 
 function contarValoresUnicos(registros, propiedad) {
   const valores = registros
-    .map((registro) => obtenerTexto(registro[propiedad], ""))
+    .flatMap((registro) => {
+      const valor = registro[propiedad];
+
+      return Array.isArray(valor) ? valor : [valor];
+    })
+    .map((valor) => obtenerTexto(valor, ""))
     .filter((valor) => valor !== "")
     .map((valor) => valor.toLowerCase());
 
@@ -201,17 +206,13 @@ function PanelPrincipal() {
   const totalTalleres = talleres.length;
 
   const totalResponsables = useMemo(() => {
-    return contarValoresUnicos(talleres, "responsable");
+    return contarValoresUnicos(talleres, "artesanos");
   }, [talleres]);
 
   const totalEspecialidades = useMemo(() => {
-    return contarValoresUnicos(talleres, "especialidad");
+    return contarValoresUnicos(talleres, "especialidades");
   }, [talleres]);
 
-  /*
-   * Permanece en cero porque todavía no existe
-   * una API para solicitudes de registro.
-   */
   const solicitudesPorValidar = 0;
 
   const talleresRecientes = useMemo(() => {
@@ -234,7 +235,7 @@ function PanelPrincipal() {
 
     talleres.forEach((taller) => {
       const ubicacion = obtenerTexto(
-        taller.ubicacion,
+        taller.comunidad || taller.municipio,
         "Sin ubicación",
       );
 
@@ -422,28 +423,31 @@ function PanelPrincipal() {
 
                       <td>
                         {obtenerTexto(
-                          taller.nombreTaller,
+                          taller.nombre,
                           "Sin nombre",
                         )}
                       </td>
 
                       <td>
-                        {obtenerTexto(
-                          taller.responsable,
-                          "Sin responsable",
-                        )}
+                        {Array.isArray(taller.artesanos) &&
+                        taller.artesanos.length > 0
+                          ? taller.artesanos.join(", ")
+                          : "Sin responsable"}
+                      </td>
+
+                      <td>
+                        {Array.isArray(
+                          taller.especialidades,
+                        ) &&
+                        taller.especialidades.length > 0
+                          ? taller.especialidades.join(", ")
+                          : "Sin especialidad"}
                       </td>
 
                       <td>
                         {obtenerTexto(
-                          taller.especialidad,
-                          "Sin especialidad",
-                        )}
-                      </td>
-
-                      <td>
-                        {obtenerTexto(
-                          taller.ubicacion,
+                          taller.comunidad ||
+                            taller.municipio,
                           "Sin ubicación",
                         )}
                       </td>
@@ -711,12 +715,7 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<PanelPrincipal />} />
             <Route path="/artesanos" element={<Artesanos />} />
-<<<<<<< HEAD
-            <Route path="/especialidades" element={<Especialidades />} />
-          <Route path="/talleres" element={<Talleres />} />
-=======
             <Route path="/talleres" element={<Talleres />} />
->>>>>>> a0de246 (feat: completar gestion de artesanos y paginacion de catalogos)
             <Route
               path="/artesanias"
               element={<Artesanias />}
