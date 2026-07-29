@@ -10,20 +10,35 @@ import com.manosdeoaxaca.backend.model.Artesania;
 
 public interface ArtesaniaRepositorio extends JpaRepository<Artesania, Long> {
 
-    @Query("""
-        SELECT DISTINCT ar
-        FROM Artesania ar
-        JOIN ar.taller t
-        JOIN t.comunidad c
-        WHERE (:region IS NULL OR LOWER(c.region) = LOWER(:region))
-          AND (
-            :busqueda IS NULL
-            OR LOWER(ar.nombre) LIKE LOWER(CONCAT('%', :busqueda, '%'))
-            OR LOWER(ar.descripcion) LIKE LOWER(CONCAT('%', :busqueda, '%'))
-            OR LOWER(t.nombre) LIKE LOWER(CONCAT('%', :busqueda, '%'))
-            OR LOWER(c.nombre) LIKE LOWER(CONCAT('%', :busqueda, '%'))
-          )
-        """)
+    @Query(
+        value = """
+            SELECT DISTINCT ar
+            FROM Artesania ar
+            JOIN ar.taller t
+            JOIN t.comunidad c
+            WHERE (:region IS NULL OR LOWER(c.region) = LOWER(:region))
+              AND (
+                :busqueda IS NULL
+                OR LOWER(ar.nombre) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+                OR LOWER(ar.descripcion) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+                OR LOWER(t.nombre) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+                OR LOWER(c.nombre) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+              )
+            """,
+        countQuery = """
+            SELECT COUNT(DISTINCT ar.id)
+            FROM Artesania ar
+            JOIN ar.taller t
+            JOIN t.comunidad c
+            WHERE (:region IS NULL OR LOWER(c.region) = LOWER(:region))
+              AND (
+                :busqueda IS NULL
+                OR LOWER(ar.nombre) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+                OR LOWER(ar.descripcion) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+                OR LOWER(t.nombre) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+                OR LOWER(c.nombre) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+              )
+            """)
     Page<Artesania> buscar(
             @Param("busqueda") String busqueda,
             @Param("region") String region,

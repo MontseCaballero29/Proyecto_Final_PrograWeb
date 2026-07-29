@@ -14,29 +14,53 @@ public interface TallerRepositorio extends JpaRepository<Taller, Long> {
             String municipio,
             Pageable pageable);
 
-    @Query("""
-        SELECT DISTINCT t
-        FROM Taller t
-        JOIN t.comunidad c
-        LEFT JOIN t.artesanos a
-        LEFT JOIN a.usuario u
-        LEFT JOIN a.especialidades e
-        WHERE (
-            :municipio IS NULL
-            OR LOWER(t.municipio) LIKE LOWER(CONCAT('%', :municipio, '%'))
-          )
-          AND (:region IS NULL OR LOWER(c.region) = LOWER(:region))
-          AND (
-            :busqueda IS NULL
-            OR LOWER(t.nombre) LIKE LOWER(CONCAT('%', :busqueda, '%'))
-            OR LOWER(t.descripcion) LIKE LOWER(CONCAT('%', :busqueda, '%'))
-            OR LOWER(t.direccion) LIKE LOWER(CONCAT('%', :busqueda, '%'))
-            OR LOWER(t.municipio) LIKE LOWER(CONCAT('%', :busqueda, '%'))
-            OR LOWER(c.nombre) LIKE LOWER(CONCAT('%', :busqueda, '%'))
-            OR LOWER(u.nombre) LIKE LOWER(CONCAT('%', :busqueda, '%'))
-            OR LOWER(e.nombre) LIKE LOWER(CONCAT('%', :busqueda, '%'))
-          )
-        """)
+    @Query(
+        value = """
+            SELECT DISTINCT t
+            FROM Taller t
+            JOIN t.comunidad c
+            LEFT JOIN t.artesanos a
+            LEFT JOIN a.usuario u
+            LEFT JOIN a.especialidades e
+            WHERE (
+                :municipio IS NULL
+                OR LOWER(t.municipio) LIKE LOWER(CONCAT('%', :municipio, '%'))
+              )
+              AND (:region IS NULL OR LOWER(c.region) = LOWER(:region))
+              AND (
+                :busqueda IS NULL
+                OR LOWER(t.nombre) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+                OR LOWER(t.descripcion) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+                OR LOWER(t.direccion) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+                OR LOWER(t.municipio) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+                OR LOWER(c.nombre) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+                OR LOWER(u.nombre) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+                OR LOWER(e.nombre) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+              )
+            """,
+        countQuery = """
+            SELECT COUNT(DISTINCT t.id)
+            FROM Taller t
+            JOIN t.comunidad c
+            LEFT JOIN t.artesanos a
+            LEFT JOIN a.usuario u
+            LEFT JOIN a.especialidades e
+            WHERE (
+                :municipio IS NULL
+                OR LOWER(t.municipio) LIKE LOWER(CONCAT('%', :municipio, '%'))
+              )
+              AND (:region IS NULL OR LOWER(c.region) = LOWER(:region))
+              AND (
+                :busqueda IS NULL
+                OR LOWER(t.nombre) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+                OR LOWER(t.descripcion) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+                OR LOWER(t.direccion) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+                OR LOWER(t.municipio) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+                OR LOWER(c.nombre) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+                OR LOWER(u.nombre) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+                OR LOWER(e.nombre) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+              )
+            """)
     Page<Taller> buscar(
             @Param("municipio") String municipio,
             @Param("busqueda") String busqueda,
