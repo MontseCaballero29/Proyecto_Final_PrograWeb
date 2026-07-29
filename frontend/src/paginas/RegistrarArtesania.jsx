@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import {
   AlertCircle,
@@ -7,8 +7,7 @@ import {
   CheckCircle2,
   Image,
   LoaderCircle,
-  LockKeyhole,
-  PackageOpen,
+  PackagePlus,
   Save,
 } from "lucide-react";
 
@@ -33,17 +32,15 @@ function extraerLista(datos) {
     return datos;
   }
 
-  if (Array.isArray(datos?.content)) {
-    return datos.content;
-  }
-
-  return [];
+  return Array.isArray(datos?.content) ? datos.content : [];
 }
 
-async function obtenerMensajeError(respuesta, mensajePredeterminado) {
+async function obtenerMensajeError(
+  respuesta,
+  mensajePredeterminado,
+) {
   try {
     const datos = await respuesta.json();
-
     return (
       datos?.mensaje ||
       datos?.error ||
@@ -54,81 +51,55 @@ async function obtenerMensajeError(respuesta, mensajePredeterminado) {
   }
 }
 
-function validarCampo(nombre, valor) {
-  const texto =
-    typeof valor === "string" ? valor.trim() : valor;
-
-  if (nombre === "nombre") {
-    if (!texto) {
-      return "El nombre de la artesanía es obligatorio.";
-    }
-
-    if (texto.length > 120) {
-      return "El nombre no puede exceder 120 caracteres.";
-    }
-  }
-
-  if (nombre === "descripcion" && texto.length > 1000) {
-    return "La descripción no puede exceder 1000 caracteres.";
-  }
-
-  if (nombre === "precio") {
-    if (texto === "") {
-      return "El precio es obligatorio.";
-    }
-
-    if (!/^\d+(\.\d{1,2})?$/.test(texto)) {
-      return "Escribe un precio válido con máximo 2 decimales.";
-    }
-
-    if (Number(texto) <= 0) {
-      return "El precio debe ser mayor que cero.";
-    }
-  }
-
-  if (nombre === "existencia") {
-    if (texto === "") {
-      return "La existencia es obligatoria.";
-    }
-
-    if (!/^\d+$/.test(texto)) {
-      return "La existencia debe ser un número entero sin valores negativos.";
-    }
-  }
-
-  if (nombre === "imagenUrl" && texto.length > 255) {
-    return "La URL de la imagen no puede exceder 255 caracteres.";
-  }
-
-  if (nombre === "tallerId" && !texto) {
-    return "Selecciona el taller de procedencia.";
-  }
-
-  return "";
-}
-
 function validarFormulario(formulario) {
-  return Object.keys(formulario).reduce(
-    (resultado, nombre) => {
-      const mensaje = validarCampo(
-        nombre,
-        formulario[nombre],
-      );
+  const errores = {};
+  const nombre = formulario.nombre.trim();
+  const descripcion = formulario.descripcion.trim();
+  const imagenUrl = formulario.imagenUrl.trim();
 
-      if (mensaje) {
-        resultado[nombre] = mensaje;
-      }
+  if (!nombre) {
+    errores.nombre =
+      "El nombre de la artesanía es obligatorio.";
+  } else if (nombre.length > 120) {
+    errores.nombre =
+      "El nombre no puede exceder 120 caracteres.";
+  }
 
-      return resultado;
-    },
-    {},
-  );
+  if (descripcion.length > 1000) {
+    errores.descripcion =
+      "La descripción no puede exceder 1000 caracteres.";
+  }
+
+  if (
+    !/^\d+(\.\d{1,2})?$/.test(formulario.precio) ||
+    Number(formulario.precio) <= 0
+  ) {
+    errores.precio =
+      "Escribe un precio mayor que cero con máximo 2 decimales.";
+  }
+
+  if (!/^\d+$/.test(formulario.existencia)) {
+    errores.existencia =
+      "La existencia debe ser un número entero no negativo.";
+  }
+
+  if (imagenUrl.length > 255) {
+    errores.imagenUrl =
+      "La URL de la imagen no puede exceder 255 caracteres.";
+  }
+
+  if (!formulario.tallerId) {
+    errores.tallerId =
+      "Selecciona el taller de procedencia.";
+  }
+
+  return errores;
 }
 
-function EditarArtesania() {
-  const { id } = useParams();
+function RegistrarArtesania() {
   const navigate = useNavigate();
-
+  const rol = localStorage.getItem("rol");
+  const esAdmin = rol === "ADMIN";
   const [formulario, setFormulario] = useState(
     FORMULARIO_INICIAL,
   );
@@ -142,179 +113,74 @@ function EditarArtesania() {
     texto: "",
   });
 
-  const rol = localStorage.getItem("rol");
-  const esAdmin = rol === "ADMIN";
-  const puedeGestionar =
-    esAdmin || rol === "ARTESANO";
-
-  const cargarDatos = useCallback(async () => {
-    if (!puedeGestionar) {
-      setCargando(false);
-      return;
-    }
-
+  const cargarTalleres = useCallback(async () => {
     try {
       setCargando(true);
       setErrorCarga("");
 
-      const token = localStorage.getItem("token");
+      const respuesta = await fetch(
+        esAdmin
+          ? `${API_TALLERES}?page=0&size=1000`
+          : `${API_TALLERES}/mios?page=0&size=1000`,
+        {
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
 
-      if (!token) {
-        throw new Error(
-          "No se encontró una sesión iniciada. Inicia sesión nuevamente.",
-        );
-      }
-
-      const cabeceras = {
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-      };
-
-      const [respuestaArtesania, respuestaTalleres] =
-        await Promise.all([
-          fetch(`${API_ARTESANIAS}/${id}`, {
-            headers: cabeceras,
-          }),
-          fetch(
-            esAdmin
-              ? `${API_TALLERES}?page=0&size=1000`
-              : `${API_TALLERES}/mios?page=0&size=1000`,
-            { headers: cabeceras },
-          ),
-        ]);
-
-      if (!respuestaArtesania.ok) {
-        const mensajesPorEstado = {
-          401: "Tu sesión no es válida o ha expirado.",
-          403: "No tienes permiso para editar esta artesanía.",
-          404: "La artesanía que intentas editar no existe.",
-        };
-
+      if (!respuesta.ok) {
         throw new Error(
           await obtenerMensajeError(
-            respuestaArtesania,
-            mensajesPorEstado[
-              respuestaArtesania.status
-            ] ||
-              `No se pudo obtener la artesanía. Código: ${respuestaArtesania.status}`,
+            respuesta,
+            "No se pudieron cargar los talleres disponibles.",
           ),
         );
       }
 
-      if (!respuestaTalleres.ok) {
-        throw new Error(
-          await obtenerMensajeError(
-            respuestaTalleres,
-            "No se pudo cargar la lista de talleres.",
-          ),
-        );
-      }
-
-      const [artesania, datosTalleres] =
-        await Promise.all([
-          respuestaArtesania.json(),
-          respuestaTalleres.json(),
-        ]);
-
-      const listaTalleres =
-        extraerLista(datosTalleres);
-
-      if (
-        !esAdmin &&
-        !listaTalleres.some(
-          (taller) =>
-            Number(taller.id) ===
-            Number(artesania.tallerId),
-        )
-      ) {
-        throw new Error(
-          "No tienes permiso para editar esta artesanía.",
-        );
-      }
-
+      const datos = await respuesta.json();
       setTalleres(
-        [...listaTalleres].sort((tallerA, tallerB) =>
+        extraerLista(datos).sort((tallerA, tallerB) =>
           (tallerA.nombre || "").localeCompare(
             tallerB.nombre || "",
             "es",
           ),
         ),
       );
-
-      setFormulario({
-        nombre: artesania.nombre || "",
-        descripcion: artesania.descripcion || "",
-        precio:
-          artesania.precio === null ||
-          artesania.precio === undefined
-            ? ""
-            : String(artesania.precio),
-        existencia:
-          artesania.existencia === null ||
-          artesania.existencia === undefined
-            ? ""
-            : String(artesania.existencia),
-        imagenUrl: artesania.imagenUrl || "",
-        tallerId:
-          artesania.tallerId === null ||
-          artesania.tallerId === undefined
-            ? ""
-            : String(artesania.tallerId),
-      });
-    } catch (errorPeticion) {
-      console.error(
-        "Error al cargar la artesanía:",
-        errorPeticion,
-      );
+    } catch (error) {
       setErrorCarga(
-        errorPeticion.message ||
-          "No fue posible cargar la información solicitada.",
+        error.message ||
+          "No fue posible cargar los talleres.",
       );
     } finally {
       setCargando(false);
     }
-  }, [esAdmin, id, puedeGestionar]);
+  }, [esAdmin]);
 
   useEffect(() => {
-    cargarDatos();
-  }, [cargarDatos]);
+    cargarTalleres();
+  }, [cargarTalleres]);
 
   const actualizarCampo = (evento) => {
     const { name, value } = evento.target;
-
-    setFormulario((formularioAnterior) => ({
-      ...formularioAnterior,
+    setFormulario((anterior) => ({
+      ...anterior,
       [name]: value,
     }));
-
-    setErrores((erroresAnteriores) => {
-      const erroresActualizados = {
-        ...erroresAnteriores,
-      };
-      const mensajeCampo = validarCampo(name, value);
-
-      if (mensajeCampo) {
-        erroresActualizados[name] = mensajeCampo;
-      } else {
-        delete erroresActualizados[name];
-      }
-
-      return erroresActualizados;
+    setErrores((anteriores) => {
+      const actualizados = { ...anteriores };
+      delete actualizados[name];
+      return actualizados;
     });
-
-    if (mensaje.texto) {
-      setMensaje({ tipo: "", texto: "" });
-    }
+    setMensaje({ tipo: "", texto: "" });
   };
 
-  const guardarCambios = async (evento) => {
+  const registrar = async (evento) => {
     evento.preventDefault();
-
     const erroresFormulario =
       validarFormulario(formulario);
-
     setErrores(erroresFormulario);
-    setMensaje({ tipo: "", texto: "" });
 
     if (Object.keys(erroresFormulario).length > 0) {
       return;
@@ -322,118 +188,54 @@ function EditarArtesania() {
 
     try {
       setGuardando(true);
+      setMensaje({ tipo: "", texto: "" });
 
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        throw new Error(
-          "No se encontró una sesión iniciada. Inicia sesión nuevamente.",
-        );
-      }
-
-      const peticion = {
-        nombre: formulario.nombre.trim(),
-        descripcion:
-          formulario.descripcion.trim() || null,
-        precio: Number(formulario.precio),
-        existencia: Number(formulario.existencia),
-        imagenUrl:
-          formulario.imagenUrl.trim() || null,
-        tallerId: Number(formulario.tallerId),
-      };
-
-      const respuesta = await fetch(
-        `${API_ARTESANIAS}/${id}`,
-        {
-          method: "PUT",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(peticion),
+      const respuesta = await fetch(API_ARTESANIAS, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-      );
+        body: JSON.stringify({
+          nombre: formulario.nombre.trim(),
+          descripcion:
+            formulario.descripcion.trim() || null,
+          precio: Number(formulario.precio),
+          existencia: Number(formulario.existencia),
+          imagenUrl: formulario.imagenUrl.trim() || null,
+          tallerId: Number(formulario.tallerId),
+        }),
+      });
 
       if (!respuesta.ok) {
-        const mensajesPorEstado = {
-          400: "Revisa los datos del formulario.",
-          401: "Tu sesión no es válida o ha expirado.",
-          403: "No tienes permiso para editar esta artesanía.",
-          404: "La artesanía o el taller seleccionado ya no existe.",
-        };
-
         throw new Error(
           await obtenerMensajeError(
             respuesta,
-            mensajesPorEstado[respuesta.status] ||
-              `No se pudieron guardar los cambios. Código: ${respuesta.status}`,
+            respuesta.status === 403
+              ? "No tienes permiso para agregar una artesanía a ese taller."
+              : "No se pudo registrar la artesanía.",
           ),
         );
       }
 
-      const artesaniaActualizada =
-        await respuesta.json();
-
-      setFormulario({
-        nombre: artesaniaActualizada.nombre || "",
-        descripcion:
-          artesaniaActualizada.descripcion || "",
-        precio: String(
-          artesaniaActualizada.precio ?? "",
-        ),
-        existencia: String(
-          artesaniaActualizada.existencia ?? "",
-        ),
-        imagenUrl:
-          artesaniaActualizada.imagenUrl || "",
-        tallerId: String(
-          artesaniaActualizada.tallerId ?? "",
-        ),
-      });
+      setFormulario(FORMULARIO_INICIAL);
       setErrores({});
       setMensaje({
         tipo: "exito",
-        texto:
-          "La artesanía se actualizó correctamente.",
+        texto: "La artesanía se registró correctamente.",
       });
-    } catch (errorPeticion) {
-      console.error(
-        "Error al actualizar la artesanía:",
-        errorPeticion,
-      );
+    } catch (error) {
       setMensaje({
         tipo: "error",
         texto:
-          errorPeticion.message ||
-          "No fue posible guardar los cambios.",
+          error.message ||
+          "No fue posible registrar la artesanía.",
       });
     } finally {
       setGuardando(false);
     }
   };
-
-  if (!puedeGestionar) {
-    return (
-      <section className="pagina-editar-artesania">
-        <div className="estado-edicion-artesania estado-sin-permiso">
-          <LockKeyhole size={42} />
-          <h2>Acceso restringido</h2>
-          <p>
-            Solo una cuenta ADMIN o ARTESANO autorizada
-            puede editar artesanías.
-          </p>
-          <button
-            type="button"
-            onClick={() => navigate("/artesanias")}
-          >
-            <ArrowLeft size={18} />
-            Volver al listado
-          </button>
-        </div>
-      </section>
-    );
-  }
 
   if (cargando) {
     return (
@@ -443,7 +245,7 @@ function EditarArtesania() {
             className="icono-girando"
             size={38}
           />
-          <p>Cargando información de la artesanía...</p>
+          <p>Cargando talleres disponibles...</p>
         </div>
       </section>
     );
@@ -454,24 +256,11 @@ function EditarArtesania() {
       <section className="pagina-editar-artesania">
         <div className="estado-edicion-artesania estado-edicion-error">
           <AlertCircle size={40} />
-          <h2>No fue posible abrir la artesanía</h2>
+          <h2>No fue posible abrir el formulario</h2>
           <p>{errorCarga}</p>
-
-          <div className="acciones-error-edicion">
-            <button
-              type="button"
-              onClick={cargarDatos}
-            >
-              Intentar nuevamente
-            </button>
-
-            <button
-              type="button"
-              onClick={() => navigate("/artesanias")}
-            >
-              Volver al listado
-            </button>
-          </div>
+          <button type="button" onClick={cargarTalleres}>
+            Intentar nuevamente
+          </button>
         </div>
       </section>
     );
@@ -482,14 +271,11 @@ function EditarArtesania() {
       <div className="encabezado-editar-artesania">
         <div>
           <p className="ruta-editar-artesania">
-            Catálogo / Artesanías / Editar
+            Catálogo / Artesanías / Nuevo registro
           </p>
-
-          <h2>Editar artesanía</h2>
-
+          <h2>Agregar artesanía</h2>
           <p className="descripcion-editar-artesania">
-            Actualiza la información de la pieza
-            seleccionada.
+            Registra una pieza y relaciónala con un taller.
           </p>
         </div>
 
@@ -497,7 +283,6 @@ function EditarArtesania() {
           className="boton-volver-artesanias"
           type="button"
           onClick={() => navigate("/artesanias")}
-          disabled={guardando}
         >
           <ArrowLeft size={18} />
           Volver al listado
@@ -527,21 +312,19 @@ function EditarArtesania() {
       <article className="tarjeta-editar-artesania">
         <div className="titulo-formulario-artesania">
           <div className="icono-formulario-artesania">
-            <PackageOpen size={25} />
+            <PackagePlus size={25} />
           </div>
-
           <div>
             <h3>Datos de la artesanía</h3>
             <p>
-              Los campos marcados con * son
-              obligatorios.
+              Los campos marcados con * son obligatorios.
             </p>
           </div>
         </div>
 
         <form
           className="formulario-editar-artesania"
-          onSubmit={guardarCambios}
+          onSubmit={registrar}
           noValidate
         >
           <div className="cuadricula-editar-artesania">
@@ -549,7 +332,6 @@ function EditarArtesania() {
               <label htmlFor="nombre">
                 Nombre <span>*</span>
               </label>
-
               <input
                 id="nombre"
                 name="nombre"
@@ -564,7 +346,6 @@ function EditarArtesania() {
                     : ""
                 }
               />
-
               {errores.nombre && (
                 <small className="texto-error-artesania">
                   <AlertCircle size={14} />
@@ -577,7 +358,6 @@ function EditarArtesania() {
               <label htmlFor="precio">
                 Precio (MXN) <span>*</span>
               </label>
-
               <input
                 id="precio"
                 name="precio"
@@ -593,7 +373,6 @@ function EditarArtesania() {
                     : ""
                 }
               />
-
               {errores.precio && (
                 <small className="texto-error-artesania">
                   <AlertCircle size={14} />
@@ -606,7 +385,6 @@ function EditarArtesania() {
               <label htmlFor="existencia">
                 Existencia <span>*</span>
               </label>
-
               <input
                 id="existencia"
                 name="existencia"
@@ -622,7 +400,6 @@ function EditarArtesania() {
                     : ""
                 }
               />
-
               {errores.existencia && (
                 <small className="texto-error-artesania">
                   <AlertCircle size={14} />
@@ -635,7 +412,6 @@ function EditarArtesania() {
               <label htmlFor="tallerId">
                 Taller de procedencia <span>*</span>
               </label>
-
               <select
                 id="tallerId"
                 name="tallerId"
@@ -651,18 +427,15 @@ function EditarArtesania() {
                 <option value="">
                   Selecciona un taller
                 </option>
-
                 {talleres.map((taller) => (
                   <option
-                    key={taller.id}
                     value={taller.id}
+                    key={taller.id}
                   >
-                    {taller.nombre ||
-                      `Taller ${taller.id}`}
+                    {taller.nombre || `Taller ${taller.id}`}
                   </option>
                 ))}
               </select>
-
               {errores.tallerId && (
                 <small className="texto-error-artesania">
                   <AlertCircle size={14} />
@@ -675,7 +448,6 @@ function EditarArtesania() {
               <label htmlFor="imagenUrl">
                 URL de la imagen
               </label>
-
               <div className="entrada-imagen-artesania">
                 <Image size={18} />
                 <input
@@ -687,14 +459,8 @@ function EditarArtesania() {
                   disabled={guardando}
                   maxLength="255"
                   placeholder="https://ejemplo.com/imagen.jpg"
-                  className={
-                    errores.imagenUrl
-                      ? "campo-artesania-error"
-                      : ""
-                  }
                 />
               </div>
-
               {errores.imagenUrl && (
                 <small className="texto-error-artesania">
                   <AlertCircle size={14} />
@@ -707,7 +473,6 @@ function EditarArtesania() {
               <label htmlFor="descripcion">
                 Descripción
               </label>
-
               <textarea
                 id="descripcion"
                 name="descripcion"
@@ -716,13 +481,7 @@ function EditarArtesania() {
                 onChange={actualizarCampo}
                 disabled={guardando}
                 maxLength="1000"
-                className={
-                  errores.descripcion
-                    ? "campo-artesania-error"
-                    : ""
-                }
               />
-
               <div className="pie-descripcion-artesania">
                 <div>
                   {errores.descripcion && (
@@ -732,7 +491,6 @@ function EditarArtesania() {
                     </small>
                   )}
                 </div>
-
                 <small>
                   {formulario.descripcion.length} / 1000
                 </small>
@@ -749,11 +507,10 @@ function EditarArtesania() {
             >
               Cancelar
             </button>
-
             <button
               className="boton-guardar-artesania"
               type="submit"
-              disabled={guardando}
+              disabled={guardando || talleres.length === 0}
             >
               {guardando ? (
                 <>
@@ -766,7 +523,7 @@ function EditarArtesania() {
               ) : (
                 <>
                   <Save size={18} />
-                  Guardar cambios
+                  Registrar artesanía
                 </>
               )}
             </button>
@@ -777,4 +534,4 @@ function EditarArtesania() {
   );
 }
 
-export default EditarArtesania;
+export default RegistrarArtesania;

@@ -1,10 +1,13 @@
 package com.manosdeoaxaca.backend.controlador;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,6 +16,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.manosdeoaxaca.backend.dto.ArtesaniaPeticion;
 import com.manosdeoaxaca.backend.dto.ArtesaniaRespuesta;
@@ -31,8 +35,34 @@ public class ArtesaniaControlador {
     }
 
     @GetMapping
-    public ResponseEntity<List<ArtesaniaRespuesta>> listarTodas() {
-        return ResponseEntity.ok(artesaniaServicio.listarTodas());
+    public ResponseEntity<Page<ArtesaniaRespuesta>> listar(
+            @RequestParam(required = false) String busqueda,
+            @RequestParam(required = false) String region,
+            @PageableDefault(
+                    size = 10,
+                    sort = "id",
+                    direction = Sort.Direction.ASC)
+            Pageable pageable) {
+        return ResponseEntity.ok(
+                artesaniaServicio.listar(
+                        busqueda,
+                        region,
+                        pageable));
+    }
+
+    @GetMapping("/mias")
+    @PreAuthorize("hasRole('ARTESANO')")
+    public ResponseEntity<Page<ArtesaniaRespuesta>> listarMias(
+            Authentication authentication,
+            @PageableDefault(
+                    size = 10,
+                    sort = "id",
+                    direction = Sort.Direction.ASC)
+            Pageable pageable) {
+        return ResponseEntity.ok(
+                artesaniaServicio.listarPorArtesano(
+                        authentication.getName(),
+                        pageable));
     }
 
     @GetMapping("/{id}")
@@ -41,17 +71,27 @@ public class ArtesaniaControlador {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ArtesaniaRespuesta> crear(@Valid @RequestBody ArtesaniaPeticion peticion) {
-        ArtesaniaRespuesta creada = artesaniaServicio.crear(peticion);
+    @PreAuthorize("hasAnyRole('ADMIN', 'ARTESANO')")
+    public ResponseEntity<ArtesaniaRespuesta> crear(
+            @Valid @RequestBody ArtesaniaPeticion peticion,
+            Authentication authentication) {
+        ArtesaniaRespuesta creada = artesaniaServicio.crear(
+                peticion,
+                authentication.getName());
         return ResponseEntity.status(HttpStatus.CREATED).body(creada);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ARTESANO')")
     public ResponseEntity<ArtesaniaRespuesta> actualizar(
-            @PathVariable Long id, @Valid @RequestBody ArtesaniaPeticion peticion) {
-        return ResponseEntity.ok(artesaniaServicio.actualizar(id, peticion));
+            @PathVariable Long id,
+            @Valid @RequestBody ArtesaniaPeticion peticion,
+            Authentication authentication) {
+        return ResponseEntity.ok(
+                artesaniaServicio.actualizar(
+                        id,
+                        peticion,
+                        authentication.getName()));
     }
 
     @DeleteMapping("/{id}")

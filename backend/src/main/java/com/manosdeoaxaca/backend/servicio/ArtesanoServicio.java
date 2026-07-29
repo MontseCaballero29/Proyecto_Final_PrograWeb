@@ -1,146 +1,297 @@
 package com.manosdeoaxaca.backend.servicio;
 
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.manosdeoaxaca.backend.dto.ArtesanoDetalleRespuesta;
 import com.manosdeoaxaca.backend.dto.ArtesanoPeticion;
 import com.manosdeoaxaca.backend.dto.ArtesanoRespuesta;
+import com.manosdeoaxaca.backend.excepciones.ConflictoRecursoExcepcion;
 import com.manosdeoaxaca.backend.excepciones.RecursoNoEncontradoExcepcion;
 import com.manosdeoaxaca.backend.model.Artesano;
 import com.manosdeoaxaca.backend.model.Comunidad;
 import com.manosdeoaxaca.backend.model.Especialidad;
+import com.manosdeoaxaca.backend.model.Rol;
 import com.manosdeoaxaca.backend.model.Usuario;
 import com.manosdeoaxaca.backend.repositorio.ArtesanoRepositorio;
 import com.manosdeoaxaca.backend.repositorio.ComunidadRepositorio;
 import com.manosdeoaxaca.backend.repositorio.EspecialidadRepositorio;
+import com.manosdeoaxaca.backend.repositorio.RolRepositorio;
 import com.manosdeoaxaca.backend.repositorio.UsuarioRepositorio;
 
 @Service
+@Transactional(readOnly = true)
 public class ArtesanoServicio {
 
     private final ArtesanoRepositorio artesanoRepositorio;
     private final UsuarioRepositorio usuarioRepositorio;
     private final ComunidadRepositorio comunidadRepositorio;
     private final EspecialidadRepositorio especialidadRepositorio;
+    private final RolRepositorio rolRepositorio;
 
-    public ArtesanoServicio(ArtesanoRepositorio artesanoRepositorio, UsuarioRepositorio usuarioRepositorio,
-            ComunidadRepositorio comunidadRepositorio, EspecialidadRepositorio especialidadRepositorio) {
+    public ArtesanoServicio(
+            ArtesanoRepositorio artesanoRepositorio,
+            UsuarioRepositorio usuarioRepositorio,
+            ComunidadRepositorio comunidadRepositorio,
+            EspecialidadRepositorio especialidadRepositorio,
+            RolRepositorio rolRepositorio) {
         this.artesanoRepositorio = artesanoRepositorio;
         this.usuarioRepositorio = usuarioRepositorio;
         this.comunidadRepositorio = comunidadRepositorio;
         this.especialidadRepositorio = especialidadRepositorio;
-    }
-
-    public Page<ArtesanoRespuesta> listar(Pageable pageable) {
-        return artesanoRepositorio.findAll(pageable).map(this::convertirAResponse);
+        this.rolRepositorio = rolRepositorio;
     }
 
     public ArtesanoRespuesta obtenerPorId(Long id) {
-        Artesano artesano = artesanoRepositorio.findById(id)
-                .orElseThrow(() -> new RecursoNoEncontradoExcepcion("No existe el artesano con id: " + id));
-        return convertirAResponse(artesano);
+        return convertirARespuesta(buscarEntidadPorId(id));
     }
 
-    public ArtesanoRespuesta crear(ArtesanoPeticion peticion) {
-        Usuario usuario = usuarioRepositorio.findById(peticion.getUsuarioId())
-                .orElseThrow(() -> new RecursoNoEncontradoExcepcion("No existe el usuario con id: " + peticion.getUsuarioId()));
+    public ArtesanoDetalleRespuesta obtenerDetallePorId(Long id) {
+        return convertirADetalle(buscarEntidadPorId(id));
+    }
 
-        Comunidad comunidad = comunidadRepositorio.findById(peticion.getComunidadId())
-                .orElseThrow(() -> new RecursoNoEncontradoExcepcion("No existe la comunidad con id: " + peticion.getComunidadId()));
+    @Transactional
+    public ArtesanoRespuesta crear(ArtesanoPeticion peticion) {
+        Usuario usuario = buscarUsuario(peticion.getUsuarioId());
+
+        if (artesanoRepositorio.existsByUsuarioId(usuario.getId())) {
+            throw new ConflictoRecursoExcepcion(
+                    "El usuario seleccionado ya está registrado como artesano");
+        }
+
+        if (!"VISITANTE".equals(usuario.getRol().getNombre())) {
+            throw new ConflictoRecursoExcepcion(
+                    "Solo un usuario visitante puede registrarse como artesano");
+        }
+
+        Comunidad comunidad = buscarComunidad(peticion.getComunidadId());
+        Set<Especialidad> especialidades =
+                buscarEspecialidades(peticion.getEspecialidadIds());
+        Rol rolArtesano = rolRepositorio
+                .findByNombre("ARTESANO")
+                .orElseThrow(() -> new RecursoNoEncontradoExcepcion(
+                        "No existe el rol ARTESANO"));
 
         Artesano artesano = new Artesano();
         artesano.setUsuario(usuario);
-        artesano.setComunidad(comunidad);
-        artesano.setCurp(peticion.getCurp());
-        artesano.setBiografia(peticion.getBiografia());
-        artesano.setAniosOficio(peticion.getAniosOficio());
-        artesano.setLengua(peticion.getLengua());
+        copiarDatos(peticion, artesano, comunidad, especialidades);
 
-        if (peticion.getEspecialidadIds() != null) {
-            Set<Especialidad> especialidades = peticion.getEspecialidadIds().stream()
-                    .map(idEsp -> especialidadRepositorio.findById(idEsp)
-                            .orElseThrow(() -> new RecursoNoEncontradoExcepcion("No existe la especialidad con id: " + idEsp)))
-                    .collect(Collectors.toSet());
-            artesano.setEspecialidades(especialidades);
-        }
+        usuario.setRol(rolArtesano);
+        usuarioRepositorio.save(usuario);
 
-        Artesano guardado = artesanoRepositorio.save(artesano);
-        return convertirAResponse(guardado);
+        return convertirARespuesta(
+                artesanoRepositorio.save(artesano));
     }
 
-    public ArtesanoRespuesta actualizar(Long id, ArtesanoPeticion peticion) {
-        Artesano artesano = artesanoRepositorio.findById(id)
-                .orElseThrow(() -> new RecursoNoEncontradoExcepcion("No existe el artesano con id: " + id));
+    @Transactional
+    public ArtesanoRespuesta actualizar(
+            Long id,
+            ArtesanoPeticion peticion) {
+        Artesano artesano = buscarEntidadPorId(id);
 
-        Comunidad comunidad = comunidadRepositorio.findById(peticion.getComunidadId())
-                .orElseThrow(() -> new RecursoNoEncontradoExcepcion("No existe la comunidad con id: " + peticion.getComunidadId()));
-
-        artesano.setComunidad(comunidad);
-        artesano.setCurp(peticion.getCurp());
-        artesano.setBiografia(peticion.getBiografia());
-        artesano.setAniosOficio(peticion.getAniosOficio());
-        artesano.setLengua(peticion.getLengua());
-
-        if (peticion.getEspecialidadIds() != null) {
-            Set<Especialidad> especialidades = peticion.getEspecialidadIds().stream()
-                    .map(idEsp -> especialidadRepositorio.findById(idEsp)
-                            .orElseThrow(() -> new RecursoNoEncontradoExcepcion("No existe la especialidad con id: " + idEsp)))
-                    .collect(Collectors.toSet());
-            artesano.setEspecialidades(especialidades);
+        if (!artesano.getUsuario().getId().equals(
+                peticion.getUsuarioId())) {
+            throw new ConflictoRecursoExcepcion(
+                    "No se puede cambiar el usuario de un artesano");
         }
 
-        Artesano guardado = artesanoRepositorio.save(artesano);
-        return convertirAResponse(guardado);
+        Comunidad comunidad = buscarComunidad(
+                peticion.getComunidadId());
+        Set<Especialidad> especialidades =
+                buscarEspecialidades(peticion.getEspecialidadIds());
+
+        copiarDatos(peticion, artesano, comunidad, especialidades);
+
+        return convertirARespuesta(
+                artesanoRepositorio.save(artesano));
     }
 
+    @Transactional
     public void eliminar(Long id) {
         if (!artesanoRepositorio.existsById(id)) {
-            throw new RecursoNoEncontradoExcepcion("No existe el artesano con id: " + id);
+            throw new RecursoNoEncontradoExcepcion(
+                    "No existe el artesano con id: " + id);
         }
+
         artesanoRepositorio.deleteById(id);
     }
 
-    public Page<ArtesanoRespuesta> buscarConFiltros(Long comunidadId, String estadoValidacion, Pageable pageable) {
-        Page<Artesano> resultado;
+    public Page<ArtesanoRespuesta> buscarConFiltros(
+            Long comunidadId,
+            String estadoValidacion,
+            String busqueda,
+            String region,
+            Pageable pageable) {
+        Page<Artesano> resultado = artesanoRepositorio.buscar(
+                comunidadId,
+                normalizarFiltro(estadoValidacion),
+                normalizarFiltro(busqueda),
+                normalizarFiltro(region),
+                pageable);
 
-        if (comunidadId != null) {
-            resultado = artesanoRepositorio.findByComunidadId(comunidadId, pageable);
-        } else if (estadoValidacion != null && !estadoValidacion.isBlank()) {
-            resultado = artesanoRepositorio.findByEstadoValidacion(estadoValidacion, pageable);
-        } else {
-            resultado = artesanoRepositorio.findAll(pageable);
-        }
-
-        return resultado.map(this::convertirAResponse);
+        return resultado.map(this::convertirARespuesta);
     }
 
-    private ArtesanoRespuesta convertirAResponse(Artesano artesano) {
-        ArtesanoRespuesta dto = new ArtesanoRespuesta();
-        dto.setId(artesano.getId());
-        dto.setNombreUsuario(artesano.getUsuario().getNombre());
-        dto.setCorreo(artesano.getUsuario().getCorreo());
-        dto.setComunidad(artesano.getComunidad().getNombre());
-        dto.setCurp(enmascararCurp(artesano.getCurp()));
-        dto.setAniosOficio(artesano.getAniosOficio());
-        dto.setLengua(artesano.getLengua());
-        dto.setEstadoValidacion(artesano.getEstadoValidacion());
+    private Artesano buscarEntidadPorId(Long id) {
+        return artesanoRepositorio
+                .findById(id)
+                .orElseThrow(() ->
+                        new RecursoNoEncontradoExcepcion(
+                                "No existe el artesano con id: " + id));
+    }
 
-        Set<String> nombresEspecialidades = artesano.getEspecialidades().stream()
-                .map(Especialidad::getNombre)
+    private Usuario buscarUsuario(Long id) {
+        return usuarioRepositorio
+                .findById(id)
+                .orElseThrow(() ->
+                        new RecursoNoEncontradoExcepcion(
+                                "No existe el usuario con id: " + id));
+    }
+
+    private Comunidad buscarComunidad(Long id) {
+        return comunidadRepositorio
+                .findById(id)
+                .orElseThrow(() ->
+                        new RecursoNoEncontradoExcepcion(
+                                "No existe la comunidad con id: " + id));
+    }
+
+    private Set<Especialidad> buscarEspecialidades(
+            Set<Long> especialidadIds) {
+        if (especialidadIds == null
+                || especialidadIds.isEmpty()) {
+            return new HashSet<>();
+        }
+
+        Set<Long> idsSinDuplicados =
+                new HashSet<>(especialidadIds);
+        Set<Especialidad> especialidades = idsSinDuplicados
+                .stream()
+                .map(id -> especialidadRepositorio
+                        .findById(id)
+                        .orElseThrow(() ->
+                                new RecursoNoEncontradoExcepcion(
+                                        "No existe la especialidad con id: "
+                                                + id)))
                 .collect(Collectors.toSet());
-        dto.setEspecialidades(nombresEspecialidades);
 
-        return dto;
+        return new HashSet<>(especialidades);
+    }
+
+    private void copiarDatos(
+            ArtesanoPeticion peticion,
+            Artesano artesano,
+            Comunidad comunidad,
+            Set<Especialidad> especialidades) {
+        artesano.setComunidad(comunidad);
+        artesano.setCurp(limpiarCurp(peticion.getCurp()));
+        artesano.setBiografia(limpiarTexto(
+                peticion.getBiografia()));
+        artesano.setAniosOficio(peticion.getAniosOficio());
+        artesano.setLengua(limpiarTexto(peticion.getLengua()));
+        artesano.setEspecialidades(especialidades);
+    }
+
+    private ArtesanoRespuesta convertirARespuesta(
+            Artesano artesano) {
+        ArtesanoRespuesta respuesta = new ArtesanoRespuesta();
+        respuesta.setId(artesano.getId());
+        respuesta.setNombreUsuario(
+                artesano.getUsuario().getNombre());
+        respuesta.setCorreo(
+                artesano.getUsuario().getCorreo());
+        respuesta.setComunidad(
+                artesano.getComunidad().getNombre());
+        respuesta.setCurp(enmascararCurp(
+                artesano.getCurp()));
+        respuesta.setAniosOficio(
+                artesano.getAniosOficio());
+        respuesta.setLengua(artesano.getLengua());
+        respuesta.setEstadoValidacion(
+                artesano.getEstadoValidacion());
+        respuesta.setEspecialidades(
+                obtenerNombresEspecialidades(artesano));
+
+        return respuesta;
+    }
+
+    private ArtesanoDetalleRespuesta convertirADetalle(
+            Artesano artesano) {
+        ArtesanoDetalleRespuesta respuesta =
+                new ArtesanoDetalleRespuesta();
+        respuesta.setId(artesano.getId());
+        respuesta.setUsuarioId(
+                artesano.getUsuario().getId());
+        respuesta.setNombreUsuario(
+                artesano.getUsuario().getNombre());
+        respuesta.setCorreo(
+                artesano.getUsuario().getCorreo());
+        respuesta.setComunidadId(
+                artesano.getComunidad().getId());
+        respuesta.setComunidad(
+                artesano.getComunidad().getNombre());
+        respuesta.setCurp(artesano.getCurp());
+        respuesta.setBiografia(artesano.getBiografia());
+        respuesta.setAniosOficio(
+                artesano.getAniosOficio());
+        respuesta.setLengua(artesano.getLengua());
+        respuesta.setEstadoValidacion(
+                artesano.getEstadoValidacion());
+        respuesta.setEspecialidadIds(
+                artesano.getEspecialidades()
+                        .stream()
+                        .map(Especialidad::getId)
+                        .collect(Collectors.toCollection(
+                                LinkedHashSet::new)));
+        respuesta.setEspecialidades(
+                obtenerNombresEspecialidades(artesano));
+
+        return respuesta;
+    }
+
+    private Set<String> obtenerNombresEspecialidades(
+            Artesano artesano) {
+        return artesano.getEspecialidades()
+                .stream()
+                .map(Especialidad::getNombre)
+                .sorted()
+                .collect(Collectors.toCollection(
+                        LinkedHashSet::new));
+    }
+
+    private String limpiarCurp(String curp) {
+        String texto = limpiarTexto(curp);
+        return texto == null ? null : texto.toUpperCase();
+    }
+
+    private String limpiarTexto(String texto) {
+        if (texto == null || texto.isBlank()) {
+            return null;
+        }
+
+        return texto.trim();
+    }
+
+    private String normalizarFiltro(String texto) {
+        return texto == null || texto.isBlank()
+                ? null
+                : texto.trim();
     }
 
     private String enmascararCurp(String curp) {
         if (curp == null || curp.length() < 10) {
             return curp;
         }
-        return curp.substring(0, 6) + "••••" + curp.substring(curp.length() - 4);
+
+        return curp.substring(0, 6)
+                + "••••"
+                + curp.substring(curp.length() - 4);
     }
 }

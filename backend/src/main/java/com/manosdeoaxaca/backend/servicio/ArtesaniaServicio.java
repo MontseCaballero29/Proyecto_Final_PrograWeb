@@ -1,37 +1,57 @@
 package com.manosdeoaxaca.backend.servicio;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.manosdeoaxaca.backend.dto.ArtesaniaPeticion;
 import com.manosdeoaxaca.backend.dto.ArtesaniaRespuesta;
 import com.manosdeoaxaca.backend.excepciones.RecursoNoEncontradoExcepcion;
 import com.manosdeoaxaca.backend.model.Artesania;
 import com.manosdeoaxaca.backend.model.Taller;
+import com.manosdeoaxaca.backend.model.Usuario;
 import com.manosdeoaxaca.backend.repositorio.ArtesaniaRepositorio;
 import com.manosdeoaxaca.backend.repositorio.TallerRepositorio;
+import com.manosdeoaxaca.backend.repositorio.UsuarioRepositorio;
 
 @Service
+@Transactional(readOnly = true)
 public class ArtesaniaServicio {
 
     private final ArtesaniaRepositorio artesaniaRepositorio;
     private final TallerRepositorio tallerRepositorio;
+    private final UsuarioRepositorio usuarioRepositorio;
 
     public ArtesaniaServicio(
             ArtesaniaRepositorio artesaniaRepositorio,
-            TallerRepositorio tallerRepositorio) {
+            TallerRepositorio tallerRepositorio,
+            UsuarioRepositorio usuarioRepositorio) {
 
         this.artesaniaRepositorio = artesaniaRepositorio;
         this.tallerRepositorio = tallerRepositorio;
+        this.usuarioRepositorio = usuarioRepositorio;
     }
 
-    public List<ArtesaniaRespuesta> listarTodas() {
+    public Page<ArtesaniaRespuesta> listar(
+            String busqueda,
+            String region,
+            Pageable pageable) {
         return artesaniaRepositorio
-                .findAll()
-                .stream()
-                .map(this::convertirARespuesta)
-                .toList();
+                .buscar(
+                        normalizarFiltro(busqueda),
+                        normalizarFiltro(region),
+                        pageable)
+                .map(this::convertirARespuesta);
+    }
+
+    public Page<ArtesaniaRespuesta> listarPorArtesano(
+            String correo,
+            Pageable pageable) {
+        return artesaniaRepositorio
+                .buscarPorArtesano(correo, pageable)
+                .map(this::convertirARespuesta);
     }
 
     public ArtesaniaRespuesta obtenerPorId(Long id) {
@@ -39,8 +59,10 @@ public class ArtesaniaServicio {
         return convertirARespuesta(artesania);
     }
 
+    @Transactional
     public ArtesaniaRespuesta crear(
-            ArtesaniaPeticion peticion) {
+            ArtesaniaPeticion peticion,
+            String correo) {
 
         Taller taller = tallerRepositorio
                 .findById(peticion.getTallerId())
@@ -50,6 +72,8 @@ public class ArtesaniaServicio {
                                         + peticion.getTallerId()
                         )
                 );
+
+        validarPermisoSobreTaller(taller, correo);
 
         Artesania artesania = new Artesania();
 
@@ -61,11 +85,16 @@ public class ArtesaniaServicio {
         return convertirARespuesta(guardada);
     }
 
+    @Transactional
     public ArtesaniaRespuesta actualizar(
             Long id,
-            ArtesaniaPeticion peticion) {
+            ArtesaniaPeticion peticion,
+            String correo) {
 
         Artesania artesania = buscarEntidadPorId(id);
+        validarPermisoSobreTaller(
+                artesania.getTaller(),
+                correo);
 
         Taller taller = tallerRepositorio
                 .findById(peticion.getTallerId())
@@ -76,6 +105,8 @@ public class ArtesaniaServicio {
                         )
                 );
 
+        validarPermisoSobreTaller(taller, correo);
+
         copiarDatos(peticion, artesania, taller);
 
         Artesania actualizada =
@@ -84,6 +115,7 @@ public class ArtesaniaServicio {
         return convertirARespuesta(actualizada);
     }
 
+    @Transactional
     public void eliminar(Long id) {
         if (!artesaniaRepositorio.existsById(id)) {
             throw new RecursoNoEncontradoExcepcion(
@@ -103,6 +135,32 @@ public class ArtesaniaServicio {
                                         + id
                         )
                 );
+    }
+
+    private void validarPermisoSobreTaller(
+            Taller taller,
+            String correo) {
+        Usuario usuario = usuarioRepositorio
+                .findByCorreo(correo)
+                .orElseThrow(() ->
+                        new RecursoNoEncontradoExcepcion(
+                                "No existe la cuenta solicitada"));
+
+        if ("ADMIN".equals(usuario.getRol().getNombre())) {
+            return;
+        }
+
+        boolean pertenece = taller.getArtesanos()
+                .stream()
+                .anyMatch(artesano ->
+                        artesano.getUsuario()
+                                .getCorreo()
+                                .equalsIgnoreCase(correo));
+
+        if (!pertenece) {
+            throw new AccessDeniedException(
+                    "No puedes administrar artesanías de un taller ajeno");
+        }
     }
 
     private void copiarDatos(
@@ -169,5 +227,11 @@ public class ArtesaniaServicio {
         }
 
         return texto.trim();
+    }
+
+    private String normalizarFiltro(String texto) {
+        return texto == null || texto.isBlank()
+                ? null
+                : texto.trim();
     }
 }

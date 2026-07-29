@@ -51,6 +51,32 @@
     transform 0.2s ease;
 }
 
+.acciones-encabezado-artesanias {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.boton-registrar-artesania {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 0 18px;
+  border: 1px solid var(--verde, #496453);
+  border-radius: 10px;
+  background: var(--verde, #496453);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+}
+
+.boton-registrar-artesania:hover {
+  background: var(--verde-oscuro, #3c5547);
+}
+
 .boton-actualizar-artesanias:hover:not(:disabled) {
   background: #f0f4f1;
   transform: translateY(-1px);
@@ -309,6 +335,34 @@
 .boton-editar-artesania:hover {
   border-color: var(--verde-oscuro, #3c5547);
   background: #eaf0ec;
+}
+
+.paginacion-artesanias {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 17px;
+  padding: 18px 22px;
+  border-top: 1px solid #ece7de;
+  color: #60655f;
+  font-size: 14px;
+}
+
+.paginacion-artesanias button {
+  min-width: 102px;
+  min-height: 39px;
+  border: 1px solid #cfd7d1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--verde-oscuro, #3c5547);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.paginacion-artesanias button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 @media (max-width: 760px) {
