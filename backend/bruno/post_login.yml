@@ -1,0 +1,29 @@
+info:
+  name: post_login
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: http://localhost:8090/api/auth/login
+  body:
+    type: json
+    data: |-
+      {
+        "correo": "meli@aripo.gob.mx",
+        "password": "Meli1234!"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const cuerpo = res.getBody();
+        bru.setVar("token", cuerpo.token);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

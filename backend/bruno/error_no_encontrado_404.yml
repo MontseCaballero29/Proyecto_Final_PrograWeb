@@ -1,0 +1,17 @@
+info:
+  name: error_no_encontrado_404
+  type: http
+  seq: 3
+
+http:
+  method: GET
+  url: http://localhost:8090/api/artesanos/9999
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

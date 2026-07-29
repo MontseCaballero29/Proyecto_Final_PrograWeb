@@ -1,0 +1,28 @@
+info:
+  name: error_sin_permiso_403
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: http://localhost:8090/api/artesanos
+  body:
+    type: json
+    data: |-
+      {
+        "usuarioId": 3,
+        "comunidadId": 1,
+        "curp": "AAAA000101HOCXXX01",
+        "biografia": "Prueba de permisos",
+        "aniosOficio": 5,
+        "lengua": "Zapoteco"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
