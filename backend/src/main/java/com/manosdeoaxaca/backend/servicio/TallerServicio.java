@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,12 +39,21 @@ public class TallerServicio {
         this.artesanoRepositorio = artesanoRepositorio;
     }
 
-    public List<TallerRespuesta> listarTodos() {
-        return tallerRepositorio
-                .findAll()
-                .stream()
-                .map(this::convertirARespuesta)
-                .toList();
+    public Page<TallerRespuesta> listar(
+            String municipio,
+            Pageable pageable) {
+        Page<Taller> resultado;
+
+        if (municipio == null || municipio.isBlank()) {
+            resultado = tallerRepositorio.findAll(pageable);
+        } else {
+            resultado = tallerRepositorio
+                    .findByMunicipioContainingIgnoreCase(
+                            municipio.trim(),
+                            pageable);
+        }
+
+        return resultado.map(this::convertirARespuesta);
     }
 
     public TallerRespuesta buscarPorId(Long id) {

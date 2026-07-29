@@ -3,6 +3,7 @@ package com.manosdeoaxaca.backend.controlador;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.manosdeoaxaca.backend.dto.ArtesanoDetalleRespuesta;
 import com.manosdeoaxaca.backend.dto.ArtesanoPeticion;
 import com.manosdeoaxaca.backend.dto.ArtesanoRespuesta;
 import com.manosdeoaxaca.backend.servicio.ArtesanoServicio;
@@ -36,7 +38,11 @@ public class ArtesanoControlador {
     public ResponseEntity<Page<ArtesanoRespuesta>> listar(
             @RequestParam(required = false) Long comunidadId,
             @RequestParam(required = false) String estadoValidacion,
-            @PageableDefault(size = 10) Pageable pageable) {
+            @PageableDefault(
+                    size = 10,
+                    sort = "id",
+                    direction = Sort.Direction.ASC)
+            Pageable pageable) {
         return ResponseEntity.ok(
                 artesanoServicio.buscarConFiltros(comunidadId, estadoValidacion, pageable));
     }
@@ -44,6 +50,14 @@ public class ArtesanoControlador {
     @GetMapping("/{id}")
     public ResponseEntity<ArtesanoRespuesta> obtenerPorId(@PathVariable Long id) {
         return ResponseEntity.ok(artesanoServicio.obtenerPorId(id));
+    }
+
+    @GetMapping("/{id}/edicion")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ArtesanoDetalleRespuesta> obtenerParaEdicion(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(
+                artesanoServicio.obtenerDetallePorId(id));
     }
 
     @PostMapping

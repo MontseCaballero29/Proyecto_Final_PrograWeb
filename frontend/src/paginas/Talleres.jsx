@@ -23,6 +23,11 @@ function Talleres() {
     localStorage.getItem("rol") === "ADMIN";
 
   const [talleres, setTalleres] = useState([]);
+  const [pagina, setPagina] = useState(0);
+  const [totalPaginas, setTotalPaginas] = useState(0);
+  const [totalTalleres, setTotalTalleres] = useState(0);
+  const [esPrimera, setEsPrimera] = useState(true);
+  const [esUltima, setEsUltima] = useState(true);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
 
@@ -30,7 +35,7 @@ function Talleres() {
   const [municipioAplicado, setMunicipioAplicado] =
     useState("");
 
-  const cargarTalleres = useCallback(async () => {
+  const cargarTalleres = useCallback(async (numeroPagina = 0) => {
     try {
       setCargando(true);
       setError("");
@@ -43,13 +48,28 @@ function Talleres() {
         );
       }
 
-      const respuesta = await fetch(API_TALLERES, {
+      const parametros = new URLSearchParams({
+        page: String(numeroPagina),
+        size: "10",
+      });
+
+      if (municipioAplicado.trim()) {
+        parametros.set(
+          "municipio",
+          municipioAplicado.trim(),
+        );
+      }
+
+      const respuesta = await fetch(
+        `${API_TALLERES}?${parametros.toString()}`,
+        {
         method: "GET",
         headers: {
           Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },
-      });
+        },
+      );
 
       if (!respuesta.ok) {
         if (respuesta.status === 401) {
@@ -71,23 +91,22 @@ function Talleres() {
 
       const datos = await respuesta.json();
 
-      const listaTalleres = Array.isArray(datos)
-        ? datos
-        : [];
+      const listaTalleres = Array.isArray(datos?.content)
+        ? datos.content
+        : Array.isArray(datos)
+          ? datos
+          : [];
 
-      const textoMunicipio = municipioAplicado
-        .trim()
-        .toLowerCase();
-
-      const talleresFiltrados = textoMunicipio
-        ? listaTalleres.filter((taller) =>
-            taller.municipio
-              ?.toLowerCase()
-              .includes(textoMunicipio),
-          )
-        : listaTalleres;
-
-      setTalleres(talleresFiltrados);
+      setTalleres(listaTalleres);
+      setPagina(Number(datos?.number) || 0);
+      setTotalPaginas(Number(datos?.totalPages) || 0);
+      setTotalTalleres(
+        Number.isFinite(Number(datos?.totalElements))
+          ? Number(datos.totalElements)
+          : listaTalleres.length,
+      );
+      setEsPrimera(Boolean(datos?.first));
+      setEsUltima(Boolean(datos?.last));
     } catch (errorPeticion) {
       console.error(
         "Error al consultar los talleres:",
@@ -100,13 +119,18 @@ function Talleres() {
       );
 
       setTalleres([]);
+      setPagina(0);
+      setTotalPaginas(0);
+      setTotalTalleres(0);
+      setEsPrimera(true);
+      setEsUltima(true);
     } finally {
       setCargando(false);
     }
   }, [municipioAplicado]);
 
   useEffect(() => {
-    cargarTalleres();
+    cargarTalleres(0);
   }, [cargarTalleres]);
 
   const aplicarFiltro = (evento) => {
@@ -150,7 +174,7 @@ function Talleres() {
           <button
             className="boton-actualizar"
             type="button"
-            onClick={cargarTalleres}
+            onClick={() => cargarTalleres(pagina)}
             disabled={cargando}
           >
             <RefreshCw
@@ -236,7 +260,7 @@ function Talleres() {
               : "Total de talleres"}
           </span>
 
-          <strong>{talleres.length}</strong>
+          <strong>{totalTalleres}</strong>
         </div>
       </article>
 
@@ -270,7 +294,7 @@ function Talleres() {
 
             <button
               type="button"
-              onClick={cargarTalleres}
+              onClick={() => cargarTalleres(pagina)}
             >
               Intentar nuevamente
             </button>
@@ -309,8 +333,9 @@ function Talleres() {
         {!cargando &&
           !error &&
           talleres.length > 0 && (
-            <div className="tabla-talleres-contenedor">
-              <table className="tabla-talleres">
+            <>
+              <div className="tabla-talleres-contenedor">
+                <table className="tabla-talleres">
                 <thead>
                   <tr>
                     <th>ID</th>
@@ -414,8 +439,35 @@ function Talleres() {
                     );
                   })}
                 </tbody>
-              </table>
-            </div>
+                </table>
+              </div>
+
+              {totalPaginas > 1 && (
+                <div className="paginacion-talleres">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      cargarTalleres(pagina - 1)
+                    }
+                    disabled={esPrimera || cargando}
+                  >
+                    Anterior
+                  </button>
+                  <span>
+                    Página {pagina + 1} de {totalPaginas}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      cargarTalleres(pagina + 1)
+                    }
+                    disabled={esUltima || cargando}
+                  >
+                    Siguiente
+                  </button>
+                </div>
+              )}
+            </>
           )}
       </article>
     </section>

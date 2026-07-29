@@ -1,7 +1,7 @@
 package com.manosdeoaxaca.backend.servicio;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.manosdeoaxaca.backend.dto.ArtesaniaPeticion;
@@ -26,12 +26,11 @@ public class ArtesaniaServicio {
         this.tallerRepositorio = tallerRepositorio;
     }
 
-    public List<ArtesaniaRespuesta> listarTodas() {
+    public Page<ArtesaniaRespuesta> listar(
+            Pageable pageable) {
         return artesaniaRepositorio
-                .findAll()
-                .stream()
-                .map(this::convertirARespuesta)
-                .toList();
+                .findAll(pageable)
+                .map(this::convertirARespuesta);
     }
 
     public ArtesaniaRespuesta obtenerPorId(Long id) {

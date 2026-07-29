@@ -173,7 +173,7 @@ function EditarArtesania() {
           fetch(`${API_ARTESANIAS}/${id}`, {
             headers: cabeceras,
           }),
-          fetch(API_TALLERES, {
+          fetch(`${API_TALLERES}?page=0&size=1000`, {
             headers: cabeceras,
           }),
         ]);

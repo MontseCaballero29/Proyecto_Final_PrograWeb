@@ -89,13 +89,17 @@ function Artesanias() {
   const [artesanias, setArtesanias] = useState([]);
   const [totalArtesanias, setTotalArtesanias] =
     useState(0);
+  const [pagina, setPagina] = useState(0);
+  const [totalPaginas, setTotalPaginas] = useState(0);
+  const [esPrimera, setEsPrimera] = useState(true);
+  const [esUltima, setEsUltima] = useState(true);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
 
   const esAdmin =
     localStorage.getItem("rol") === "ADMIN";
 
-  const cargarArtesanias = useCallback(async () => {
+  const cargarArtesanias = useCallback(async (numeroPagina = 0) => {
     try {
       setCargando(true);
       setError("");
@@ -108,13 +112,16 @@ function Artesanias() {
         );
       }
 
-      const respuesta = await fetch(API_ARTESANIAS, {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`,
+      const respuesta = await fetch(
+        `${API_ARTESANIAS}?page=${numeroPagina}&size=10`,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
 
       if (!respuesta.ok) {
         const mensajesPorEstado = {
@@ -140,6 +147,10 @@ function Artesanias() {
           ? Number(datos.totalElements)
           : lista.length,
       );
+      setPagina(Number(datos?.number) || 0);
+      setTotalPaginas(Number(datos?.totalPages) || 0);
+      setEsPrimera(Boolean(datos?.first));
+      setEsUltima(Boolean(datos?.last));
     } catch (errorPeticion) {
       console.error(
         "Error al consultar las artesanías:",
@@ -148,6 +159,10 @@ function Artesanias() {
 
       setArtesanias([]);
       setTotalArtesanias(0);
+      setPagina(0);
+      setTotalPaginas(0);
+      setEsPrimera(true);
+      setEsUltima(true);
       setError(
         errorPeticion.message ||
           "No fue posible obtener las artesanías desde la API.",
@@ -158,7 +173,7 @@ function Artesanias() {
   }, []);
 
   useEffect(() => {
-    cargarArtesanias();
+    cargarArtesanias(0);
   }, [cargarArtesanias]);
 
   return (
@@ -180,7 +195,7 @@ function Artesanias() {
         <button
           className="boton-actualizar-artesanias"
           type="button"
-          onClick={cargarArtesanias}
+          onClick={() => cargarArtesanias(pagina)}
           disabled={cargando}
         >
           <RefreshCw
@@ -235,7 +250,7 @@ function Artesanias() {
 
             <button
               type="button"
-              onClick={cargarArtesanias}
+              onClick={() => cargarArtesanias(pagina)}
             >
               Intentar nuevamente
             </button>
@@ -258,8 +273,9 @@ function Artesanias() {
         {!cargando &&
           !error &&
           artesanias.length > 0 && (
-            <div className="tabla-artesanias-contenedor">
-              <table className="tabla-artesanias">
+            <>
+              <div className="tabla-artesanias-contenedor">
+                <table className="tabla-artesanias">
                 <thead>
                   <tr>
                     <th scope="col">Pieza</th>
@@ -351,8 +367,35 @@ function Artesanias() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
-            </div>
+                </table>
+              </div>
+
+              {totalPaginas > 1 && (
+                <div className="paginacion-artesanias">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      cargarArtesanias(pagina - 1)
+                    }
+                    disabled={esPrimera || cargando}
+                  >
+                    Anterior
+                  </button>
+                  <span>
+                    Página {pagina + 1} de {totalPaginas}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      cargarArtesanias(pagina + 1)
+                    }
+                    disabled={esUltima || cargando}
+                  >
+                    Siguiente
+                  </button>
+                </div>
+              )}
+            </>
           )}
       </article>
     </section>

@@ -1,0 +1,347 @@
+.pagina-formulario-artesano {
+  width: min(1050px, 100%);
+  margin: 0 auto;
+}
+
+.encabezado-formulario-artesano {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.boton-volver-artesano {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--borde, #ddd6c9);
+  border-radius: 10px;
+  background: #ffffff;
+  color: var(--verde-oscuro, #3c5547);
+  cursor: pointer;
+}
+
+.boton-volver-artesano:hover {
+  background: #edf2ee;
+}
+
+.ruta-formulario-artesano {
+  margin: 0 0 8px;
+  color: #7a817c;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.encabezado-formulario-artesano h2 {
+  margin: 0;
+  color: var(--texto, #282620);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 38px;
+}
+
+.descripcion-formulario-artesano {
+  margin: 10px 0 0;
+  color: var(--texto-suave, #696b66);
+  line-height: 1.5;
+}
+
+.tarjeta-formulario-artesano {
+  margin-top: 28px;
+  overflow: hidden;
+  border: 1px solid var(--borde, #ddd6c9);
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 3px 10px rgba(40, 38, 32, 0.07);
+}
+
+.titulo-tarjeta-artesano {
+  padding: 22px 26px;
+  border-bottom: 1px solid var(--borde, #ddd6c9);
+  background: #fbf9f4;
+}
+
+.titulo-tarjeta-artesano h3 {
+  margin: 0;
+  color: var(--texto, #282620);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 24px;
+}
+
+.titulo-tarjeta-artesano p {
+  margin: 7px 0 0;
+  color: var(--texto-suave, #696b66);
+}
+
+.campos-formulario-artesano {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+  padding: 26px;
+}
+
+.campo-artesano {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.campo-artesano-completo,
+.usuario-artesano-seleccionado,
+.campo-especialidades-artesano {
+  grid-column: 1 / -1;
+}
+
+.campo-artesano label,
+.campo-especialidades-artesano legend {
+  color: var(--texto, #282620);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.campo-artesano label strong {
+  color: #a3423c;
+}
+
+.campo-artesano input,
+.campo-artesano select,
+.campo-artesano textarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 11px 13px;
+  border: 1px solid var(--borde, #d8d2c7);
+  border-radius: 9px;
+  outline: 0;
+  background: #ffffff;
+  color: var(--texto, #282620);
+  font: inherit;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.campo-artesano textarea {
+  min-height: 125px;
+  resize: vertical;
+}
+
+.campo-artesano input:focus,
+.campo-artesano select:focus,
+.campo-artesano textarea:focus {
+  border-color: var(--verde-oscuro, #3c5547);
+  box-shadow: 0 0 0 3px rgba(60, 85, 71, 0.12);
+}
+
+.campo-artesano input:disabled,
+.campo-artesano select:disabled,
+.campo-artesano textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.campo-artesano .campo-con-error {
+  border-color: #b7423b;
+}
+
+.mensaje-error-campo {
+  color: #a43730;
+  font-size: 12px;
+}
+
+.ayuda-campo-artesano {
+  color: #746f65;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.pie-campo-artesano {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #85827a;
+}
+
+.usuario-artesano-seleccionado {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 17px 18px;
+  border: 1px solid #cfdbd2;
+  border-radius: 11px;
+  background: #f1f5f2;
+}
+
+.icono-usuario-artesano {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: #dfe9e2;
+  color: var(--verde-oscuro, #3c5547);
+}
+
+.usuario-artesano-seleccionado div:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.usuario-artesano-seleccionado span,
+.usuario-artesano-seleccionado small {
+  color: #747873;
+}
+
+.usuario-artesano-seleccionado strong {
+  color: var(--texto, #282620);
+}
+
+.campo-especialidades-artesano {
+  min-width: 0;
+  margin: 0;
+  padding: 20px;
+  border: 1px solid var(--borde, #ddd6c9);
+  border-radius: 11px;
+}
+
+.campo-especialidades-artesano legend {
+  padding: 0 7px;
+}
+
+.campo-especialidades-artesano > p {
+  margin: 0 0 15px;
+  color: var(--texto-suave, #696b66);
+  font-size: 13px;
+}
+
+.lista-especialidades-artesano {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.opcion-especialidad-artesano {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 12px;
+  border: 1px solid #ded8cd;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #535750;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.opcion-especialidad-artesano input {
+  accent-color: var(--verde-oscuro, #3c5547);
+}
+
+.opcion-especialidad-seleccionada {
+  border-color: #6c8876;
+  background: #edf3ef;
+  color: #30483b;
+}
+
+.mensaje-formulario-artesano {
+  margin: 0 26px 22px;
+  padding: 13px 15px;
+  border-radius: 9px;
+  line-height: 1.45;
+}
+
+.mensaje-formulario-error {
+  border: 1px solid #e2b9b5;
+  background: #fff0ef;
+  color: #963b35;
+}
+
+.mensaje-formulario-exito {
+  border: 1px solid #bad2c0;
+  background: #edf7ef;
+  color: #326141;
+}
+
+.acciones-formulario-artesano {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 26px;
+  border-top: 1px solid var(--borde, #ddd6c9);
+  background: #fbf9f4;
+}
+
+.acciones-formulario-artesano button {
+  min-height: 45px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 18px;
+  border-radius: 9px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.boton-cancelar-artesano {
+  border: 1px solid var(--borde, #d8d2c7);
+  background: #ffffff;
+  color: #555951;
+}
+
+.boton-guardar-artesano {
+  border: 1px solid var(--verde-oscuro, #3c5547);
+  background: var(--verde-oscuro, #3c5547);
+  color: #ffffff;
+}
+
+.acciones-formulario-artesano button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.estado-carga-formulario-artesano {
+  min-height: 330px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #6a706a;
+  text-align: center;
+}
+
+@media (max-width: 800px) {
+  .campos-formulario-artesano {
+    grid-template-columns: 1fr;
+    padding: 20px;
+  }
+
+  .lista-especialidades-artesano {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .encabezado-formulario-artesano h2 {
+    font-size: 31px;
+  }
+
+  .lista-especialidades-artesano {
+    grid-template-columns: 1fr;
+  }
+
+  .acciones-formulario-artesano {
+    flex-direction: column-reverse;
+  }
+
+  .acciones-formulario-artesano button {
+    width: 100%;
+  }
+}

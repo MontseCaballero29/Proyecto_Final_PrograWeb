@@ -172,7 +172,7 @@ function EditarTaller() {
         fetch(API_COMUNIDADES, {
           headers: cabeceras,
         }),
-        fetch(API_ARTESANOS, {
+        fetch(`${API_ARTESANOS}?page=0&size=1000`, {
           headers: cabeceras,
         }),
       ]);

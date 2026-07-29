@@ -31,6 +31,8 @@ import Talleres from "./paginas/Talleres";
 import RegistrarTaller from "./paginas/RegistrarTaller";
 import EditarTaller from "./paginas/EditarTaller";
 import Artesanos from "./paginas/Artesanos";
+import RegistrarArtesano from "./paginas/RegistrarArtesano";
+import EditarArtesano from "./paginas/EditarArtesano";
 import Artesanias from "./paginas/Artesanias";
 import EditarArtesania from "./paginas/EditarArtesania";
 import Especialidades from "./paginas/Especialidades";
@@ -151,7 +153,16 @@ function PanelPrincipal() {
       setCargando(true);
       setError("");
 
-      const respuesta = await fetch(API_TALLERES);
+      const token = localStorage.getItem("token");
+      const respuesta = await fetch(
+        `${API_TALLERES}?page=0&size=1000`,
+        {
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
 
       if (!respuesta.ok) {
         throw new Error(
@@ -161,7 +172,13 @@ function PanelPrincipal() {
 
       const datos = await respuesta.json();
 
-      setTalleres(Array.isArray(datos) ? datos : []);
+      setTalleres(
+        Array.isArray(datos?.content)
+          ? datos.content
+          : Array.isArray(datos)
+            ? datos
+            : [],
+      );
     } catch (errorPeticion) {
       console.error(
         "Error al cargar la información del panel:",
@@ -694,13 +711,25 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<PanelPrincipal />} />
             <Route path="/artesanos" element={<Artesanos />} />
+<<<<<<< HEAD
             <Route path="/especialidades" element={<Especialidades />} />
           <Route path="/talleres" element={<Talleres />} />
+=======
+            <Route path="/talleres" element={<Talleres />} />
+>>>>>>> a0de246 (feat: completar gestion de artesanos y paginacion de catalogos)
             <Route
               path="/artesanias"
               element={<Artesanias />}
             />
             <Route element={<RutaSoloAdmin />}>
+              <Route
+                path="/artesanos/nuevo"
+                element={<RegistrarArtesano />}
+              />
+              <Route
+                path="/artesanos/editar/:id"
+                element={<EditarArtesano />}
+              />
               <Route
                 path="/talleres/nuevo"
                 element={<RegistrarTaller />}

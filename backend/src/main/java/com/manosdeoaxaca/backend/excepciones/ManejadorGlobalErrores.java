@@ -20,6 +20,15 @@ public class ManejadorGlobalErrores {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(cuerpo);
     }
 
+    @ExceptionHandler(ConflictoRecursoExcepcion.class)
+    public ResponseEntity<RespuestaError> manejarConflicto(ConflictoRecursoExcepcion excepcion) {
+        RespuestaError cuerpo = new RespuestaError(
+                HttpStatus.CONFLICT.value(),
+                "Conflicto",
+                excepcion.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(cuerpo);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<RespuestaError> manejarValidacion(MethodArgumentNotValidException excepcion) {
         String primerError = excepcion.getBindingResult().getFieldErrors().stream()

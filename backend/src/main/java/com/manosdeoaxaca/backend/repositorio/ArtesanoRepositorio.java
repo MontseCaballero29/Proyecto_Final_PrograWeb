@@ -11,4 +11,6 @@ public interface ArtesanoRepositorio extends JpaRepository<Artesano, Long> {
     Page<Artesano> findByComunidadId(Long comunidadId, Pageable pageable);
 
     Page<Artesano> findByEstadoValidacion(String estadoValidacion, Pageable pageable);
+
+    boolean existsByUsuarioId(Long usuarioId);
 }
