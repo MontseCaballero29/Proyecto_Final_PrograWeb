@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: http://localhost:8090/api/artesanos
+  url: https://talleresartesaniasoaxaca.dpdns.org/api/artesanos
   body:
     type: json
     data: |-

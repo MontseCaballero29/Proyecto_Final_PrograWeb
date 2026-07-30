@@ -5,10 +5,10 @@ info:
 
 http:
   method: PATCH
-  url: http://localhost:8090/api/artesanos/1/aprobar
+  url: https://talleresartesaniasoaxaca.dpdns.org/api/artesanos/1/aprobar
   auth:
     type: bearer
-    token: '{{token}}'
+    token: "{{token}}"
 
 settings:
   encodeUrl: true

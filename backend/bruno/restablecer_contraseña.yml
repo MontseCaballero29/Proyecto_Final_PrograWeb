@@ -1,17 +1,17 @@
 info:
-  name: error_credenciales_401
+  name: restablecer_contraseña
   type: http
-  seq: 7
+  seq: 9
 
 http:
   method: POST
-  url: https://talleresartesaniasoaxaca.dpdns.org/api/auth/login
+  url: http://localhost:8090/api/auth/restablecer
   body:
     type: json
     data: |-
       {
-        "correo": "admin@aripo.gob.mx",
-        "password": "Incorrecta123!"
+        "token": "8fc24a7e-1747-44b2-beb2-4f5c63fab52f",
+        "password": "NuevaClave123!"
       }
   auth: inherit
 

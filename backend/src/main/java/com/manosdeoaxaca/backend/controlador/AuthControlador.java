@@ -10,6 +10,8 @@ import com.manosdeoaxaca.backend.dto.AuthResponse;
 import com.manosdeoaxaca.backend.dto.LoginRequest;
 import com.manosdeoaxaca.backend.dto.RegistroRequest;
 import com.manosdeoaxaca.backend.servicio.AuthServicio;
+import com.manosdeoaxaca.backend.dto.RecuperarRequest;
+import com.manosdeoaxaca.backend.dto.RestablecerRequest;
 
 import jakarta.validation.Valid;
 
@@ -31,5 +33,17 @@ public class AuthControlador {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest peticion) {
         return ResponseEntity.ok(authServicio.login(peticion));
+    }
+    
+    @PostMapping("/recuperar")
+    public ResponseEntity<Void> recuperar(@Valid @RequestBody RecuperarRequest peticion) {
+        authServicio.recuperarPassword(peticion);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/restablecer")
+    public ResponseEntity<Void> restablecer(@Valid @RequestBody RestablecerRequest peticion) {
+        authServicio.restablecerPassword(peticion);
+        return ResponseEntity.ok().build();
     }
 }

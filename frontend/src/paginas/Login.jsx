@@ -87,6 +87,7 @@ function Login() {
             </div>
 
             <Link to="/registro" className="recuperar-login">¿No tienes cuenta? Regístrate</Link>
+            <Link to="/recuperar" className="recuperar-login">  ¿Olvidaste tu contraseña?</Link>
 
             {error && <p className="error-login">{error}</p>}
 

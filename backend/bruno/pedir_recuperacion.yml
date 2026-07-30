@@ -1,17 +1,16 @@
 info:
-  name: error_credenciales_401
+  name: pedir_recuperacion
   type: http
-  seq: 7
+  seq: 8
 
 http:
   method: POST
-  url: https://talleresartesaniasoaxaca.dpdns.org/api/auth/login
+  url: http://localhost:8090/api/auth/recuperar
   body:
     type: json
     data: |-
       {
-        "correo": "admin@aripo.gob.mx",
-        "password": "Incorrecta123!"
+        "correo": "admin@aripo.gob.mx"
       }
   auth: inherit
 

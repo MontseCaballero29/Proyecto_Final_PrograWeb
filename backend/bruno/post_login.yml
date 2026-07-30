@@ -5,13 +5,13 @@ info:
 
 http:
   method: POST
-  url: http://localhost:8090/api/auth/login
+  url: https://talleresartesaniasoaxaca.dpdns.org/api/auth/login
   body:
     type: json
     data: |-
       {
-        "correo": "meli@aripo.gob.mx",
-        "password": "Meli1234!"
+        "correo": "Admin@aripo.gob.mx",
+        "password": "Admin123!"
       }
   auth: inherit
 

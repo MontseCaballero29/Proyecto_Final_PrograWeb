@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: http://localhost:8090/api/auth/register
+  url: https://talleresartesaniasoaxaca.dpdns.org/api/auth/register
   body:
     type: json
     data: |-

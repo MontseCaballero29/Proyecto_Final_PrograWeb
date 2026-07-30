@@ -42,6 +42,8 @@ import Especialidades from "./paginas/Especialidades";
 import Resenas from "./paginas/Resenas";
 import ConfiguracionCuenta from "./paginas/ConfiguracionCuenta";
 import SolicitudesRegistro from "./paginas/SolicitudesRegistro";
+import RecuperarPassword from "./paginas/RecuperarPassword";
+import RestablecerPassword from "./paginas/RestablecerPassword";
 
 import "./App.css";
 
@@ -886,6 +888,8 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Registro />} />
+        <Route path="/recuperar" element={<RecuperarPassword />} />
+        <Route path="/restablecer" element={<RestablecerPassword />} />
         <Route element={<RutaProtegida />}>
           <Route element={<Layout />}>
             <Route path="/" element={<PanelPrincipal />} />

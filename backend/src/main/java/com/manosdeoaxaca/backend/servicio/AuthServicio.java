@@ -1,5 +1,13 @@
 package com.manosdeoaxaca.backend.servicio;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import com.manosdeoaxaca.backend.dto.RecuperarRequest;
+import com.manosdeoaxaca.backend.dto.RestablecerRequest;
+import com.manosdeoaxaca.backend.model.PasswordResetToken;
+import com.manosdeoaxaca.backend.repositorio.PasswordResetTokenRepositorio;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,15 +30,21 @@ public class AuthServicio {
     private final PasswordEncoder passwordEncoder;
     private final JwtServicio jwtServicio;
     private final AuthenticationManager authenticationManager;
+    private final PasswordResetTokenRepositorio passwordResetTokenRepositorio;
+    private final CorreoServicio correoServicio;
 
     public AuthServicio(UsuarioRepositorio usuarioRepositorio, RolRepositorio rolRepositorio,
             PasswordEncoder passwordEncoder, JwtServicio jwtServicio,
-            AuthenticationManager authenticationManager) {
+            AuthenticationManager authenticationManager,
+            PasswordResetTokenRepositorio passwordResetTokenRepositorio,
+            CorreoServicio correoServicio) {
         this.usuarioRepositorio = usuarioRepositorio;
         this.rolRepositorio = rolRepositorio;
         this.passwordEncoder = passwordEncoder;
         this.jwtServicio = jwtServicio;
         this.authenticationManager = authenticationManager;
+        this.passwordResetTokenRepositorio = passwordResetTokenRepositorio;
+        this.correoServicio = correoServicio;
     }
 
     public AuthResponse registrar(RegistroRequest peticion) {
@@ -64,5 +78,46 @@ public class AuthServicio {
         String rol = usuario.getRol().getNombre();
         String token = jwtServicio.generarToken(usuario.getCorreo(), rol);
         return new AuthResponse(token, usuario.getCorreo(), rol);
+    }
+    
+    public void recuperarPassword(RecuperarRequest peticion) {
+        Usuario usuario = usuarioRepositorio.findByCorreo(peticion.getCorreo())
+                .orElse(null);
+
+        if (usuario == null) {
+            return;
+        }
+
+        String token = UUID.randomUUID().toString();
+
+        PasswordResetToken tokenRecuperacion = new PasswordResetToken();
+        tokenRecuperacion.setToken(token);
+        tokenRecuperacion.setUsuario(usuario);
+        tokenRecuperacion.setExpiraEn(LocalDateTime.now().plusHours(1));
+
+        passwordResetTokenRepositorio.save(tokenRecuperacion);
+
+        correoServicio.enviarCorreoRecuperacion(usuario.getCorreo(), token);
+    }
+
+    public void restablecerPassword(RestablecerRequest peticion) {
+        PasswordResetToken tokenRecuperacion = passwordResetTokenRepositorio
+                .findByToken(peticion.getToken())
+                .orElseThrow(() -> new RuntimeException("El enlace de recuperación no es válido"));
+
+        if (tokenRecuperacion.isUsado()) {
+            throw new RuntimeException("El enlace de recuperación ya fue utilizado");
+        }
+
+        if (tokenRecuperacion.getExpiraEn().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("El enlace de recuperación ha expirado");
+        }
+
+        Usuario usuario = tokenRecuperacion.getUsuario();
+        usuario.setPasswordHash(passwordEncoder.encode(peticion.getPassword()));
+        usuarioRepositorio.save(usuario);
+
+        tokenRecuperacion.setUsado(true);
+        passwordResetTokenRepositorio.save(tokenRecuperacion);
     }
 }

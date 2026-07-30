@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: http://localhost:8090/api/artesanos/9999
+  url: https://talleresartesaniasoaxaca.dpdns.org/api/artesanos/9999
   auth:
     type: bearer
     token: "{{token}}"
