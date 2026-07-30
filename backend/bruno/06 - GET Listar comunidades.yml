@@ -8,7 +8,7 @@ http:
   url: https://talleresartesaniasoaxaca.dpdns.org/api/comunidades
   auth:
     type: bearer
-    token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhcmlwby5nb2IubXgiLCJyb2wiOiJBRE1JTiIsImlhdCI6MTc4NTQyMDkzOSwiZXhwIjoxNzg1NTA3MzM5fQ.lJ87u43iRRlTZky-Aw7tZ-FKV4RV7vf91is12qxG4fE
+    token: "{{token}}"
 
 settings:
   encodeUrl: true

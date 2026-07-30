@@ -11,9 +11,16 @@ http:
     data: |-
       {
         "correo": "admin@aripo.gob.mx",
-        "password": "Admin123!"
+        "password": "Admin1234!"
       }
   auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const cuerpo = res.getBody();
+        bru.setVar("token", cuerpo.token);
 
 settings:
   encodeUrl: true
