@@ -46,6 +46,8 @@ Manos de Oaxaca resuelve esta problemática mediante una plataforma que administ
 **Otros**
 - Bruno (pruebas de la API)
 - Figma (diseño de interfaz)
+- Twilio (notificaciones por SMS y WhatsApp)
+- Nginx y AWS EC2 (despliegue en VPS)
 
 ---
 
@@ -147,13 +149,15 @@ erDiagram
 
 URL base local: `http://localhost:8090`
 
+URL base pública: `https://talleresartesaniasoaxaca.dpdns.org/api`
+
 Todas las rutas fuera de `/api/auth/**` requieren el encabezado `Authorization: Bearer <token>`.
 
 ### Autenticación — `/api/auth` (público)
 
 | Método | Ruta | Descripción |
 |--------|------|-------------|
-| POST | `/api/auth/register` | Registra un visitante. Devuelve token JWT, correo y rol. |
+| POST | `/api/auth/register` | Registra un visitante con nombre, correo, contraseña y teléfono. Devuelve token JWT, correo y rol. |
 | POST | `/api/auth/login` | Valida credenciales (BCrypt). Devuelve token JWT, correo y rol. |
 
 ### Artesanos — `/api/artesanos`
@@ -162,9 +166,33 @@ Todas las rutas fuera de `/api/auth/**` requieren el encabezado `Authorization: 
 |--------|------|-----|-------------|
 | GET | `/api/artesanos` | Autenticado | Listado con paginación y filtros (`comunidadId`, `estadoValidacion`, `page`, `size`). |
 | GET | `/api/artesanos/{id}` | Autenticado | Obtiene un artesano por id. |
+| GET | `/api/artesanos/{id}/edicion` | ADMIN | Obtiene todos los datos necesarios para revisar o editar un artesano. |
 | POST | `/api/artesanos` | ADMIN | Crea un artesano. |
+| PATCH | `/api/artesanos/{id}/aprobar` | ADMIN | Cambia el estado a `APROBADO`, registra al administrador que validó y solicita el envío de WhatsApp. |
+| PATCH | `/api/artesanos/{id}/rechazar` | ADMIN | Cambia el estado de la solicitud a `RECHAZADO`. |
 | PUT | `/api/artesanos/{id}` | ADMIN | Actualiza un artesano. |
 | DELETE | `/api/artesanos/{id}` | ADMIN | Elimina un artesano. |
+
+---
+
+## Validación de artesanos y notificaciones
+
+El sistema utiliza tres estados de validación para los perfiles de artesanos:
+
+- `EN_REVISION`: perfil registrado y pendiente de decisión.
+- `APROBADO`: perfil aceptado por un administrador.
+- `RECHAZADO`: solicitud rechazada por un administrador.
+
+### Flujo
+
+1. El visitante se registra con un número telefónico en formato internacional, por ejemplo: `+529511234567`.
+2. Cuando el administrador crea su perfil de artesano, el sistema lo guarda como `EN_REVISION` y solicita el envío de un **SMS** de confirmación.
+3. El administrador ingresa a **Solicitudes de registro**.
+4. En cada fila puede usar **Revisar**, **Aprobar** o **Rechazar**.
+5. Si selecciona **Aprobar**, el perfil cambia a `APROBADO` y se solicita el envío del mensaje por **WhatsApp**.
+6. Si selecciona **Rechazar**, el perfil cambia a `RECHAZADO` y desaparece del listado de solicitudes pendientes.
+
+En cuentas de prueba de Twilio, el número receptor debe estar autorizado. Para WhatsApp Sandbox, el receptor debe haberse unido previamente enviando el código `join` indicado por Twilio.
 
 ### Talleres — `/api/talleres`
 
@@ -225,6 +253,23 @@ El usuario administrador permite ingresar y evaluar todos los módulos del siste
 ### Configuración
 
 Copia `application.properties.example` a `application.properties` dentro de `backend/src/main/resources/` y completa los valores (credenciales de MySQL, clave secreta del JWT). Este archivo no se sube al repositorio por seguridad.
+
+Para activar las notificaciones en el VPS, el servicio utiliza variables de entorno. Ejemplo sin credenciales reales:
+
+```env
+TWILIO_ENABLED=true
+TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+TWILIO_AUTH_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+TWILIO_SMS_FROM=+10000000000
+TWILIO_WHATSAPP_FROM=whatsapp:+14155238886
+```
+
+Después de modificar las variables del VPS se debe reiniciar el servicio:
+
+```bash
+sudo systemctl restart manos-oaxaca.service
+sudo systemctl is-active manos-oaxaca.service
+```
 
 ### Backend
 
@@ -289,10 +334,15 @@ https://github.com/users/MontseCaballero29/projects/1
 *https://www.figma.com/proto/CbaXPifFINz2uZvt2uEyDT/Proyecto_Final_Equipo2?node-id=2019-13&t=b3MalXEKAQhqGxqS-1*
 
 ### Proyecto desplegado (VPS)
-*(URL)*
+[https://talleresartesaniasoaxaca.dpdns.org/](https://talleresartesaniasoaxaca.dpdns.org/)
+
+El backend se ejecuta internamente en el puerto `8090`. Nginx funciona como proxy inverso y permite acceder públicamente mediante el dominio HTTPS, por lo que no es necesario escribir el puerto en la URL pública.
+
+### URL base pública de la API
+[https://talleresartesaniasoaxaca.dpdns.org/api](https://talleresartesaniasoaxaca.dpdns.org/api)
 
 ---
 
 ## Estado actual
 
-Desarrollo en curso. Backend con autenticación, roles y CRUD de artesanos, talleres y artesanías funcionando; frontend con inicio de sesión, registro, manejo de sesión y rutas protegidas. Pendientes: gestión de artesanos en el frontend, comunicación (correo, SMS, WhatsApp) y despliegue en el VPS.
+Proyecto desplegado en VPS con frontend React servido mediante Nginx y backend Spring Boot ejecutándose en el puerto interno `8090`. Incluye autenticación JWT, control de permisos por rol, CRUD de artesanos, talleres, artesanías y especialidades, filtros, paginación, reseñas, configuración de cuenta, validación de solicitudes de artesanos y notificaciones mediante SMS y WhatsApp con Twilio.
