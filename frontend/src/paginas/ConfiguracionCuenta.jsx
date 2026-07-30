@@ -10,6 +10,7 @@ import {
   Mail,
   PackagePlus,
   Pencil,
+  Phone,
   Save,
   UserRound,
 } from "lucide-react";
@@ -22,6 +23,8 @@ const API_TALLERES =
   `${import.meta.env.VITE_API_URL}/api/talleres`
 const API_ARTESANIAS =
   `${import.meta.env.VITE_API_URL}/api/artesanias`
+
+const PATRON_TELEFONO = /^\+[1-9]\d{9,14}$/;
 
 function extraerLista(datos) {
   if (Array.isArray(datos)) {
@@ -53,6 +56,7 @@ function ConfiguracionCuenta() {
   const [cuenta, setCuenta] = useState({
     nombre: "",
     correo: "",
+    telefono: "",
     rol: "",
   });
   const [passwords, setPasswords] = useState({
@@ -118,6 +122,7 @@ function ConfiguracionCuenta() {
       setCuenta({
         nombre: datosCuenta.nombre || "",
         correo: datosCuenta.correo || "",
+        telefono: datosCuenta.telefono || "",
         rol: datosCuenta.rol || "",
       });
 
@@ -149,10 +154,23 @@ function ConfiguracionCuenta() {
     evento.preventDefault();
     setMensajePerfil({ tipo: "", texto: "" });
 
-    if (!cuenta.nombre.trim() || !cuenta.correo.trim()) {
+    if (
+      !cuenta.nombre.trim() ||
+      !cuenta.correo.trim() ||
+      !cuenta.telefono.trim()
+    ) {
       setMensajePerfil({
         tipo: "error",
-        texto: "El nombre y el correo son obligatorios.",
+        texto: "El nombre, el correo y el teléfono celular son obligatorios.",
+      });
+      return;
+    }
+
+    if (!PATRON_TELEFONO.test(cuenta.telefono.trim())) {
+      setMensajePerfil({
+        tipo: "error",
+        texto:
+          "Escribe el celular en formato internacional, por ejemplo +529511234567.",
       });
       return;
     }
@@ -169,6 +187,7 @@ function ConfiguracionCuenta() {
         body: JSON.stringify({
           nombre: cuenta.nombre.trim(),
           correo: cuenta.correo.trim(),
+          telefono: cuenta.telefono.trim(),
         }),
       });
 
@@ -192,6 +211,7 @@ function ConfiguracionCuenta() {
       setCuenta({
         nombre: datos.nombre,
         correo: datos.correo,
+        telefono: datos.telefono || "",
         rol: datos.rol,
       });
       window.dispatchEvent(
@@ -307,7 +327,7 @@ function ConfiguracionCuenta() {
         <p>Cuenta / Configuración</p>
         <h2>Configuración de la cuenta</h2>
         <span>
-          Actualiza tus datos personales y la contraseña.
+          Actualiza tus datos personales, el celular para notificaciones y la contraseña.
         </span>
       </header>
 
@@ -322,7 +342,7 @@ function ConfiguracionCuenta() {
             <UserRound size={23} />
             <div>
               <h3>Datos personales</h3>
-              <p>Tu nombre y correo de acceso.</p>
+              <p>Tu nombre, correo de acceso y celular de contacto.</p>
             </div>
           </div>
 
@@ -375,6 +395,37 @@ function ConfiguracionCuenta() {
                 disabled={guardandoPerfil}
               />
             </div>
+          </label>
+
+          <label className="campo-cuenta">
+            <span>Celular para SMS y WhatsApp</span>
+            <div>
+              <Phone size={18} />
+              <input
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                value={cuenta.telefono}
+                onChange={(evento) => {
+                  const valor = evento.target.value.replace(
+                    /[^+\d]/g,
+                    "",
+                  );
+                  setCuenta((anterior) => ({
+                    ...anterior,
+                    telefono: valor,
+                  }));
+                }}
+                placeholder="+529511234567"
+                maxLength="16"
+                required
+                disabled={guardandoPerfil}
+              />
+            </div>
+            <small>
+              Usa código de país. Este número recibirá las
+              notificaciones de registro y aprobación.
+            </small>
           </label>
 
           <button

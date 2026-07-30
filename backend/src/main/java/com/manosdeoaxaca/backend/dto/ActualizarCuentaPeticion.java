@@ -2,6 +2,7 @@ package com.manosdeoaxaca.backend.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class ActualizarCuentaPeticion {
@@ -14,6 +15,12 @@ public class ActualizarCuentaPeticion {
     @Email(message = "El formato del correo no es válido")
     @Size(max = 150, message = "El correo no puede exceder 150 caracteres")
     private String correo;
+
+    @NotBlank(message = "El teléfono celular es obligatorio")
+    @Pattern(
+        regexp = "^\\+[1-9][0-9]{9,14}$",
+        message = "El teléfono debe usar formato internacional, por ejemplo +529511234567")
+    private String telefono;
 
     public String getNombre() {
         return nombre;
@@ -29,5 +36,13 @@ public class ActualizarCuentaPeticion {
 
     public void setCorreo(String correo) {
         this.correo = correo;
+    }
+
+    public String getTelefono() {
+        return telefono;
+    }
+
+    public void setTelefono(String telefono) {
+        this.telefono = telefono;
     }
 }

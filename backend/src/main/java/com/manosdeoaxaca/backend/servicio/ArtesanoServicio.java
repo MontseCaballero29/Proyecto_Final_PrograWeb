@@ -16,6 +16,7 @@ import com.manosdeoaxaca.backend.dto.ArtesanoPeticion;
 import com.manosdeoaxaca.backend.dto.ArtesanoRespuesta;
 import com.manosdeoaxaca.backend.excepciones.ConflictoRecursoExcepcion;
 import com.manosdeoaxaca.backend.excepciones.RecursoNoEncontradoExcepcion;
+import com.manosdeoaxaca.backend.excepciones.SolicitudInvalidaExcepcion;
 import com.manosdeoaxaca.backend.model.Artesano;
 import com.manosdeoaxaca.backend.model.Comunidad;
 import com.manosdeoaxaca.backend.model.Especialidad;
@@ -73,6 +74,13 @@ public class ArtesanoServicio {
         if (!"VISITANTE".equals(usuario.getRol().getNombre())) {
             throw new ConflictoRecursoExcepcion(
                     "Solo un usuario visitante puede registrarse como artesano");
+        }
+
+        if (usuario.getTelefono() == null
+                || usuario.getTelefono().isBlank()) {
+            throw new SolicitudInvalidaExcepcion(
+                    "El usuario debe registrar un teléfono celular antes "
+                            + "de crear su perfil de artesano");
         }
 
         Comunidad comunidad = buscarComunidad(peticion.getComunidadId());

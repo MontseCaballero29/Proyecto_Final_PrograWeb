@@ -47,7 +47,8 @@ public class UsuarioServicio {
                 .map(usuario -> new UsuarioDisponibleRespuesta(
                         usuario.getId(),
                         usuario.getNombre(),
-                        usuario.getCorreo()))
+                        usuario.getCorreo(),
+                        usuario.getTelefono()))
                 .toList();
     }
 
@@ -71,6 +72,7 @@ public class UsuarioServicio {
 
         usuario.setNombre(peticion.getNombre().trim());
         usuario.setCorreo(correoNuevo);
+        usuario.setTelefono(peticion.getTelefono().trim());
         usuarioRepositorio.save(usuario);
 
         String token = jwtServicio.generarToken(
@@ -120,6 +122,7 @@ public class UsuarioServicio {
                 usuario.getId(),
                 usuario.getNombre(),
                 usuario.getCorreo(),
+                usuario.getTelefono(),
                 usuario.getRol().getNombre(),
                 token);
     }

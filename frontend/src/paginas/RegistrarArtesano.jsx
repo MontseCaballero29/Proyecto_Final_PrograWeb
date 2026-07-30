@@ -132,6 +132,19 @@ function RegistrarArtesano() {
       formulario,
       true,
     );
+    const usuarioSeleccionado = usuarios.find(
+      (usuario) =>
+        String(usuario.id) === String(formulario.usuarioId),
+    );
+
+    if (
+      formulario.usuarioId &&
+      usuarioSeleccionado &&
+      !usuarioSeleccionado.telefono
+    ) {
+      erroresFormulario.usuarioId =
+        "El usuario seleccionado debe agregar su celular en Configuración.";
+    }
 
     if (Object.keys(erroresFormulario).length > 0) {
       setErrores(erroresFormulario);
@@ -173,7 +186,7 @@ function RegistrarArtesano() {
       setMensaje({
         tipo: "exito",
         texto:
-          "El artesano se registró correctamente y el usuario ahora tiene el rol ARTESANO.",
+          "El artesano se registró correctamente. Se solicitó el envío del SMS al celular de su cuenta.",
       });
       await cargarCatalogos();
     } catch (errorPeticion) {

@@ -44,7 +44,8 @@ function FormularioArtesano({
             <option value="">Selecciona un usuario</option>
             {usuarios.map((usuario) => (
               <option key={usuario.id} value={usuario.id}>
-                {usuario.nombre} — {usuario.correo}
+                {usuario.nombre} — {usuario.correo} —{" "}
+                {usuario.telefono || "sin celular"}
               </option>
             ))}
           </select>
@@ -57,6 +58,13 @@ function FormularioArtesano({
             <small className="ayuda-campo-artesano">
               No hay usuarios visitantes disponibles. Primero debe
               registrarse una cuenta de visitante.
+            </small>
+          )}
+          {usuarios.some((usuario) => !usuario.telefono) && (
+            <small className="ayuda-campo-artesano">
+              Las cuentas que indiquen “sin celular” deben agregarlo
+              en Configuración antes de poder registrarse como
+              artesano.
             </small>
           )}
         </div>

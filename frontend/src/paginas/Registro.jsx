@@ -182,15 +182,23 @@ function Registro() {
             </div>
 
             <div className="campo-login">
-              <label htmlFor="telefono">Teléfono</label>
+              <label htmlFor="telefono">
+                Celular para SMS y WhatsApp
+              </label>
               <input
                 id="telefono"
                 type="tel"
+                inputMode="tel"
+                autoComplete="tel"
                 value={telefono}
                 onChange={alCambiarTelefono}
                 placeholder="+529511234567"
                 maxLength={16}
+                required
               />
+              <small>
+                Usa código de país; para México comienza con +52.
+              </small>
               {errorTelefono && (
                 <p className="error-campo">{errorTelefono}</p>
               )}
