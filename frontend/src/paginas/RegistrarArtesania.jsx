@@ -14,9 +14,9 @@ import {
 import "./EditarArtesania.css";
 
 const API_ARTESANIAS =
-  "http://localhost:8090/api/artesanias";
+  `${import.meta.env.VITE_API_URL}/api/artesanias`
 const API_TALLERES =
-  "http://localhost:8090/api/talleres";
+  `${import.meta.env.VITE_API_URL}/api/talleres`
 
 const FORMULARIO_INICIAL = {
   nombre: "",

@@ -1,11 +1,11 @@
 export const API_ARTESANOS =
-  "http://localhost:8090/api/artesanos";
+  `${import.meta.env.VITE_API_URL}/api/artesanos`
 export const API_COMUNIDADES =
-  "http://localhost:8090/api/comunidades";
+  `${import.meta.env.VITE_API_URL}/api/comunidades`
 export const API_ESPECIALIDADES =
-  "http://localhost:8090/api/especialidades";
+  `${import.meta.env.VITE_API_URL}/api/especialidades`
 export const API_USUARIOS_DISPONIBLES =
-  "http://localhost:8090/api/usuarios/disponibles-artesano";
+  `${import.meta.env.VITE_API_URL}/api/usuarios/disponibles-artesano`
 
 export const FORMULARIO_ARTESANO_INICIAL = {
   usuarioId: "",

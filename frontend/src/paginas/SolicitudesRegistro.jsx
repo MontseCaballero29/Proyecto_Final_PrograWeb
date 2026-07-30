@@ -11,7 +11,7 @@ import {
 import "./SolicitudesRegistro.css";
 
 const API_ARTESANOS =
-  "http://localhost:8090/api/artesanos";
+  `${import.meta.env.VITE_API_URL}/api/artesanos`
 
 function SolicitudesRegistro() {
   const navigate = useNavigate();

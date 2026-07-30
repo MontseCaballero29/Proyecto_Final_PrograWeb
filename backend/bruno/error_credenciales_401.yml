@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: http://localhost:8090/api/auth/login
+  url: http://54.83.75.25:8090/api/auth/login
   body:
     type: json
     data: |-

@@ -13,11 +13,11 @@ import {
 import "./RegistrarTaller.css";
 
 const API_TALLERES =
-  "http://localhost:8090/api/talleres";
+  `${import.meta.env.VITE_API_URL}/api/talleres`
 const API_COMUNIDADES =
-  "http://localhost:8090/api/comunidades";
+  `${import.meta.env.VITE_API_URL}/api/comunidades`
 const API_ARTESANOS =
-  "http://localhost:8090/api/artesanos?size=100";
+  `${import.meta.env.VITE_API_URL}/api/artesanos?size=100`
 
 const FORMULARIO_INICIAL = {
   nombre: "",

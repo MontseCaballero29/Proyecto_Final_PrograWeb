@@ -13,11 +13,11 @@ import ModalConfirmacion from "../componentes/ModalConfirmacion";
 import "./Resenas.css";
 
 const API_RESENAS =
-  "http://localhost:8090/api/resenas";
+  `${import.meta.env.VITE_API_URL}/api/resenas`
 const RECURSOS = {
-  ARTESANO: "http://localhost:8090/api/artesanos",
-  TALLER: "http://localhost:8090/api/talleres",
-  ARTESANIA: "http://localhost:8090/api/artesanias",
+  ARTESANO: `${import.meta.env.VITE_API_URL}/api/artesanos`,
+  TALLER: `${import.meta.env.VITE_API_URL}/api/talleres`,
+  ARTESANIA: `${import.meta.env.VITE_API_URL}/api/artesanias`,
 };
 
 function extraerLista(datos) {

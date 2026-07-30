@@ -17,11 +17,11 @@ import {
 import "./ConfiguracionCuenta.css";
 
 const API_USUARIOS =
-  "http://localhost:8090/api/usuarios";
+  `${import.meta.env.VITE_API_URL}/api/usuarios`
 const API_TALLERES =
-  "http://localhost:8090/api/talleres";
+  `${import.meta.env.VITE_API_URL}/api/talleres`
 const API_ARTESANIAS =
-  "http://localhost:8090/api/artesanias";
+  `${import.meta.env.VITE_API_URL}/api/artesanias`
 
 function extraerLista(datos) {
   if (Array.isArray(datos)) {

@@ -18,7 +18,7 @@ import {
 
 import "./Talleres.css";
 
-const API_TALLERES = "http://localhost:8090/api/talleres";
+const API_TALLERES = `${import.meta.env.VITE_API_URL}/api/talleres`;
 
 function Talleres() {
   const navigate = useNavigate();
