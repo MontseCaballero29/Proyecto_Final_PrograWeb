@@ -12,6 +12,7 @@ http:
       {
         "nombre": "visitante_prueba",
         "correo": "visitante.demo@gmail.com",
+        "telefono": "+529511234567",
         "password": "visiTante1234!"
       }
   auth: inherit

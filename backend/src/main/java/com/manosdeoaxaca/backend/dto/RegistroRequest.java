@@ -15,6 +15,12 @@ public class RegistroRequest {
     @Email(message = "El formato del correo no es válido")
     private String correo;
 
+    @NotBlank(message = "El teléfono es obligatorio")
+    @Pattern(
+        regexp = "^\\+[1-9][0-9]{9,14}$",
+        message = "El teléfono debe usar formato internacional, por ejemplo +529511234567")
+    private String telefono;
+
     @NotBlank(message = "La contraseña es obligatoria")
     @Pattern(
         regexp = "^(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$",
@@ -35,6 +41,14 @@ public class RegistroRequest {
 
     public void setCorreo(String correo) {
         this.correo = correo;
+    }
+
+    public String getTelefono() {
+        return telefono;
+    }
+
+    public void setTelefono(String telefono) {
+        this.telefono = telefono;
     }
 
     public String getPassword() {

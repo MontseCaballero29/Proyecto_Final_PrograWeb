@@ -1,5 +1,6 @@
 package com.manosdeoaxaca.backend.servicio;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -35,18 +36,21 @@ public class ArtesanoServicio {
     private final ComunidadRepositorio comunidadRepositorio;
     private final EspecialidadRepositorio especialidadRepositorio;
     private final RolRepositorio rolRepositorio;
+    private final TwilioMensajeriaServicio twilioMensajeriaServicio;
 
     public ArtesanoServicio(
             ArtesanoRepositorio artesanoRepositorio,
             UsuarioRepositorio usuarioRepositorio,
             ComunidadRepositorio comunidadRepositorio,
             EspecialidadRepositorio especialidadRepositorio,
-            RolRepositorio rolRepositorio) {
+            RolRepositorio rolRepositorio,
+            TwilioMensajeriaServicio twilioMensajeriaServicio) {
         this.artesanoRepositorio = artesanoRepositorio;
         this.usuarioRepositorio = usuarioRepositorio;
         this.comunidadRepositorio = comunidadRepositorio;
         this.especialidadRepositorio = especialidadRepositorio;
         this.rolRepositorio = rolRepositorio;
+        this.twilioMensajeriaServicio = twilioMensajeriaServicio;
     }
 
     public ArtesanoRespuesta obtenerPorId(Long id) {
@@ -86,8 +90,35 @@ public class ArtesanoServicio {
         usuario.setRol(rolArtesano);
         usuarioRepositorio.save(usuario);
 
-        return convertirARespuesta(
-                artesanoRepositorio.save(artesano));
+        Artesano guardado = artesanoRepositorio.save(artesano);
+        twilioMensajeriaServicio.enviarSmsRegistroArtesano(guardado);
+
+        return convertirARespuesta(guardado);
+    }
+
+    @Transactional
+    public ArtesanoRespuesta aprobar(Long id, String correoAdministrador) {
+        Artesano artesano = buscarEntidadPorId(id);
+
+        if ("APROBADO".equalsIgnoreCase(artesano.getEstadoValidacion())) {
+            throw new ConflictoRecursoExcepcion(
+                    "El artesano ya se encuentra aprobado");
+        }
+
+        Usuario administrador = usuarioRepositorio
+                .findByCorreo(correoAdministrador)
+                .orElseThrow(() -> new RecursoNoEncontradoExcepcion(
+                        "No existe el usuario administrador autenticado"));
+
+        artesano.setEstadoValidacion("APROBADO");
+        artesano.setValidadoPor(administrador);
+        artesano.setValidadoEn(LocalDateTime.now());
+
+        Artesano aprobado = artesanoRepositorio.save(artesano);
+        twilioMensajeriaServicio
+                .enviarWhatsAppAprobacionArtesano(aprobado);
+
+        return convertirARespuesta(aprobado);
     }
 
     @Transactional

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
+  BadgeCheck,
   LoaderCircle,
   Save,
 } from "lucide-react";
@@ -28,9 +29,11 @@ function EditarArtesano() {
   const [especialidades, setEspecialidades] = useState([]);
   const [nombreUsuario, setNombreUsuario] = useState("");
   const [correoUsuario, setCorreoUsuario] = useState("");
+  const [estadoValidacion, setEstadoValidacion] = useState("");
   const [errores, setErrores] = useState({});
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
+  const [aprobando, setAprobando] = useState(false);
   const [errorCarga, setErrorCarga] = useState("");
   const [mensaje, setMensaje] = useState({
     tipo: "",
@@ -80,6 +83,9 @@ function EditarArtesano() {
       setEspecialidades(extraerLista(datosEspecialidades));
       setNombreUsuario(artesano.nombreUsuario || "");
       setCorreoUsuario(artesano.correo || "");
+      setEstadoValidacion(
+        artesano.estadoValidacion || "EN_REVISION",
+      );
       setFormulario({
         usuarioId: String(artesano.usuarioId ?? ""),
         comunidadId: String(artesano.comunidadId ?? ""),
@@ -142,6 +148,52 @@ function EditarArtesano() {
       };
     });
     setMensaje({ tipo: "", texto: "" });
+  };
+
+  const aprobarArtesano = async () => {
+    try {
+      setAprobando(true);
+      setMensaje({ tipo: "", texto: "" });
+
+      const respuesta = await fetch(
+        `${API_ARTESANOS}/${id}/aprobar`,
+        {
+          method: "PATCH",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+
+      if (!respuesta.ok) {
+        throw new Error(
+          await obtenerMensajeError(
+            respuesta,
+            "No se pudo aprobar al artesano.",
+          ),
+        );
+      }
+
+      const artesanoAprobado = await respuesta.json();
+      setEstadoValidacion(
+        artesanoAprobado.estadoValidacion || "APROBADO",
+      );
+      setMensaje({
+        tipo: "exito",
+        texto:
+          "El artesano fue aprobado y se solicitó el envío del mensaje por WhatsApp.",
+      });
+    } catch (errorPeticion) {
+      setMensaje({
+        tipo: "error",
+        texto:
+          errorPeticion.message ||
+          "No fue posible aprobar al artesano.",
+      });
+    } finally {
+      setAprobando(false);
+    }
   };
 
   const guardarCambios = async (evento) => {
@@ -237,6 +289,11 @@ function EditarArtesano() {
         <div className="titulo-tarjeta-artesano">
           <h3>Información del artesano</h3>
           <p>Los cambios se guardarán directamente en la base de datos.</p>
+          <span
+            className={`estado-validacion-artesano estado-${estadoValidacion.toLowerCase()}`}
+          >
+            {estadoValidacion || "EN_REVISION"}
+          </span>
         </div>
 
         {cargando ? (
@@ -264,7 +321,7 @@ function EditarArtesano() {
             modoEdicion
             nombreUsuario={nombreUsuario}
             correoUsuario={correoUsuario}
-            deshabilitado={guardando}
+            deshabilitado={guardando || aprobando}
             onChange={actualizarCampo}
             onEspecialidad={cambiarEspecialidad}
           />
@@ -287,15 +344,36 @@ function EditarArtesano() {
             className="boton-cancelar-artesano"
             type="button"
             onClick={() => navigate("/artesanos")}
-            disabled={guardando}
+            disabled={guardando || aprobando}
           >
             Cancelar
           </button>
+          {estadoValidacion === "EN_REVISION" && (
+            <button
+              className="boton-aprobar-artesano"
+              type="button"
+              onClick={aprobarArtesano}
+              disabled={guardando || aprobando}
+            >
+              {aprobando ? (
+                <LoaderCircle
+                  className="icono-girando"
+                  size={18}
+                />
+              ) : (
+                <BadgeCheck size={18} />
+              )}
+              {aprobando ? "Aprobando..." : "Aprobar artesano"}
+            </button>
+          )}
           <button
             className="boton-guardar-artesano"
             type="submit"
             disabled={
-              cargando || Boolean(errorCarga) || guardando
+              cargando ||
+              Boolean(errorCarga) ||
+              guardando ||
+              aprobando
             }
           >
             {guardando ? (
