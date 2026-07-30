@@ -364,8 +364,24 @@
   color: #27633a;
 }
 
+.estado-rechazado {
+  background: #fbe9e7;
+  color: #963b35;
+}
+
 .boton-aprobar-artesano {
   border: 1px solid #287a47;
   background: #287a47;
+  color: #ffffff;
+}
+
+.boton-rechazar-artesano {
+  border: 1px solid #a13b35;
+  background: #ffffff;
+  color: #a13b35;
+}
+
+.boton-rechazar-artesano:hover:not(:disabled) {
+  background: #a13b35;
   color: #ffffff;
 }

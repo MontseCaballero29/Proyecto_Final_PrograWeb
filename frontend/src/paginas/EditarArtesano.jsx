@@ -5,6 +5,7 @@ import {
   BadgeCheck,
   LoaderCircle,
   Save,
+  XCircle,
 } from "lucide-react";
 
 import FormularioArtesano from "./FormularioArtesano";
@@ -34,6 +35,7 @@ function EditarArtesano() {
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [aprobando, setAprobando] = useState(false);
+  const [rechazando, setRechazando] = useState(false);
   const [errorCarga, setErrorCarga] = useState("");
   const [mensaje, setMensaje] = useState({
     tipo: "",
@@ -196,6 +198,59 @@ function EditarArtesano() {
     }
   };
 
+  const rechazarArtesano = async () => {
+    const confirmado = window.confirm(
+      "¿Seguro que deseas rechazar esta solicitud de artesano?",
+    );
+
+    if (!confirmado) {
+      return;
+    }
+
+    try {
+      setRechazando(true);
+      setMensaje({ tipo: "", texto: "" });
+
+      const respuesta = await fetch(
+        `${API_ARTESANOS}/${id}/rechazar`,
+        {
+          method: "PATCH",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+
+      if (!respuesta.ok) {
+        throw new Error(
+          await obtenerMensajeError(
+            respuesta,
+            "No se pudo rechazar al artesano.",
+          ),
+        );
+      }
+
+      const artesanoRechazado = await respuesta.json();
+      setEstadoValidacion(
+        artesanoRechazado.estadoValidacion || "RECHAZADO",
+      );
+      setMensaje({
+        tipo: "exito",
+        texto: "La solicitud del artesano fue rechazada.",
+      });
+    } catch (errorPeticion) {
+      setMensaje({
+        tipo: "error",
+        texto:
+          errorPeticion.message ||
+          "No fue posible rechazar al artesano.",
+      });
+    } finally {
+      setRechazando(false);
+    }
+  };
+
   const guardarCambios = async (evento) => {
     evento.preventDefault();
 
@@ -259,6 +314,14 @@ function EditarArtesano() {
     }
   };
 
+  const estadoNormalizado = String(
+    estadoValidacion || "EN_REVISION",
+  )
+    .trim()
+    .toUpperCase();
+  const estaEnRevision = estadoNormalizado === "EN_REVISION";
+  const procesandoValidacion = aprobando || rechazando;
+
   return (
     <section className="pagina-formulario-artesano">
       <div className="encabezado-formulario-artesano">
@@ -290,9 +353,9 @@ function EditarArtesano() {
           <h3>Información del artesano</h3>
           <p>Los cambios se guardarán directamente en la base de datos.</p>
           <span
-            className={`estado-validacion-artesano estado-${estadoValidacion.toLowerCase()}`}
+            className={`estado-validacion-artesano estado-${estadoNormalizado.toLowerCase()}`}
           >
-            {estadoValidacion || "EN_REVISION"}
+            {estadoNormalizado}
           </span>
         </div>
 
@@ -321,7 +384,7 @@ function EditarArtesano() {
             modoEdicion
             nombreUsuario={nombreUsuario}
             correoUsuario={correoUsuario}
-            deshabilitado={guardando || aprobando}
+            deshabilitado={guardando || procesandoValidacion}
             onChange={actualizarCampo}
             onEspecialidad={cambiarEspecialidad}
           />
@@ -344,27 +407,45 @@ function EditarArtesano() {
             className="boton-cancelar-artesano"
             type="button"
             onClick={() => navigate("/artesanos")}
-            disabled={guardando || aprobando}
+            disabled={guardando || procesandoValidacion}
           >
             Cancelar
           </button>
-          {estadoValidacion === "EN_REVISION" && (
-            <button
-              className="boton-aprobar-artesano"
-              type="button"
-              onClick={aprobarArtesano}
-              disabled={guardando || aprobando}
-            >
-              {aprobando ? (
-                <LoaderCircle
-                  className="icono-girando"
-                  size={18}
-                />
-              ) : (
-                <BadgeCheck size={18} />
-              )}
-              {aprobando ? "Aprobando..." : "Aprobar artesano"}
-            </button>
+          {estaEnRevision && (
+            <>
+              <button
+                className="boton-rechazar-artesano"
+                type="button"
+                onClick={rechazarArtesano}
+                disabled={guardando || procesandoValidacion}
+              >
+                {rechazando ? (
+                  <LoaderCircle
+                    className="icono-girando"
+                    size={18}
+                  />
+                ) : (
+                  <XCircle size={18} />
+                )}
+                {rechazando ? "Rechazando..." : "Rechazar"}
+              </button>
+              <button
+                className="boton-aprobar-artesano"
+                type="button"
+                onClick={aprobarArtesano}
+                disabled={guardando || procesandoValidacion}
+              >
+                {aprobando ? (
+                  <LoaderCircle
+                    className="icono-girando"
+                    size={18}
+                  />
+                ) : (
+                  <BadgeCheck size={18} />
+                )}
+                {aprobando ? "Aprobando..." : "Aprobar artesano"}
+              </button>
+            </>
           )}
           <button
             className="boton-guardar-artesano"
@@ -373,7 +454,7 @@ function EditarArtesano() {
               cargando ||
               Boolean(errorCarga) ||
               guardando ||
-              aprobando
+              procesandoValidacion
             }
           >
             {guardando ? (

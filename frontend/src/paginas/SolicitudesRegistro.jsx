@@ -3,15 +3,18 @@ import { useNavigate } from "react-router-dom";
 
 import {
   AlertCircle,
+  BadgeCheck,
   ClipboardCheck,
   LoaderCircle,
   SearchCheck,
+  XCircle,
 } from "lucide-react";
 
+import { obtenerMensajeError } from "./artesanoFormulario";
 import "./SolicitudesRegistro.css";
 
 const API_ARTESANOS =
-  `${import.meta.env.VITE_API_URL}/api/artesanos`
+  `${import.meta.env.VITE_API_URL}/api/artesanos`;
 
 function SolicitudesRegistro() {
   const navigate = useNavigate();
@@ -19,7 +22,13 @@ function SolicitudesRegistro() {
   const [pagina, setPagina] = useState(0);
   const [totalPaginas, setTotalPaginas] = useState(0);
   const [cargando, setCargando] = useState(true);
+  const [procesandoId, setProcesandoId] = useState(null);
+  const [accionProcesando, setAccionProcesando] = useState("");
   const [error, setError] = useState("");
+  const [mensaje, setMensaje] = useState({
+    tipo: "",
+    texto: "",
+  });
 
   const cargar = useCallback(async (numeroPagina = 0) => {
     try {
@@ -66,6 +75,65 @@ function SolicitudesRegistro() {
     cargar(0);
   }, [cargar]);
 
+  const cambiarEstado = async (solicitud, accion) => {
+    const esAprobacion = accion === "aprobar";
+    const confirmado = window.confirm(
+      esAprobacion
+        ? `¿Aprobar la solicitud de ${solicitud.nombreUsuario || solicitud.correo}?`
+        : `¿Rechazar la solicitud de ${solicitud.nombreUsuario || solicitud.correo}?`,
+    );
+
+    if (!confirmado) {
+      return;
+    }
+
+    try {
+      setProcesandoId(solicitud.id);
+      setAccionProcesando(accion);
+      setMensaje({ tipo: "", texto: "" });
+
+      const respuesta = await fetch(
+        `${API_ARTESANOS}/${solicitud.id}/${accion}`,
+        {
+          method: "PATCH",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+
+      if (!respuesta.ok) {
+        throw new Error(
+          await obtenerMensajeError(
+            respuesta,
+            esAprobacion
+              ? "No se pudo aprobar al artesano."
+              : "No se pudo rechazar al artesano.",
+          ),
+        );
+      }
+
+      setMensaje({
+        tipo: "exito",
+        texto: esAprobacion
+          ? "Artesano aprobado. Se solicitó el envío del mensaje por WhatsApp."
+          : "La solicitud del artesano fue rechazada.",
+      });
+      await cargar(pagina);
+    } catch (errorPeticion) {
+      setMensaje({
+        tipo: "error",
+        texto:
+          errorPeticion.message ||
+          "No fue posible actualizar la solicitud.",
+      });
+    } finally {
+      setProcesandoId(null);
+      setAccionProcesando("");
+    }
+  };
+
   return (
     <section className="pagina-solicitudes">
       <header className="encabezado-solicitudes">
@@ -89,6 +157,14 @@ function SolicitudesRegistro() {
             </p>
           </div>
         </div>
+
+        {mensaje.texto && (
+          <p
+            className={`mensaje-solicitudes mensaje-solicitudes-${mensaje.tipo}`}
+          >
+            {mensaje.texto}
+          </p>
+        )}
 
         {cargando && (
           <div className="estado-solicitudes">
@@ -135,7 +211,7 @@ function SolicitudesRegistro() {
                       <th>Correo</th>
                       <th>Comunidad</th>
                       <th>Especialidades</th>
-                      <th>Acción</th>
+                      <th>Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -161,16 +237,64 @@ function SolicitudesRegistro() {
                             : "Sin especialidades"}
                         </td>
                         <td>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              navigate(
-                                `/artesanos/editar/${solicitud.id}`,
-                              )
-                            }
-                          >
-                            Revisar
-                          </button>
+                          <div className="acciones-solicitud">
+                            <button
+                              className="boton-revisar-solicitud"
+                              type="button"
+                              disabled={procesandoId !== null}
+                              onClick={() =>
+                                navigate(
+                                  `/artesanos/editar/${solicitud.id}`,
+                                )
+                              }
+                            >
+                              Revisar
+                            </button>
+                            <button
+                              className="boton-aprobar-solicitud"
+                              type="button"
+                              disabled={procesandoId !== null}
+                              onClick={() =>
+                                cambiarEstado(
+                                  solicitud,
+                                  "aprobar",
+                                )
+                              }
+                            >
+                              {procesandoId === solicitud.id &&
+                              accionProcesando === "aprobar" ? (
+                                <LoaderCircle
+                                  className="icono-girando"
+                                  size={16}
+                                />
+                              ) : (
+                                <BadgeCheck size={16} />
+                              )}
+                              Aprobar
+                            </button>
+                            <button
+                              className="boton-rechazar-solicitud"
+                              type="button"
+                              disabled={procesandoId !== null}
+                              onClick={() =>
+                                cambiarEstado(
+                                  solicitud,
+                                  "rechazar",
+                                )
+                              }
+                            >
+                              {procesandoId === solicitud.id &&
+                              accionProcesando === "rechazar" ? (
+                                <LoaderCircle
+                                  className="icono-girando"
+                                  size={16}
+                                />
+                              ) : (
+                                <XCircle size={16} />
+                              )}
+                              Rechazar
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}

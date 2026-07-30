@@ -130,6 +130,28 @@ public class ArtesanoServicio {
     }
 
     @Transactional
+    public ArtesanoRespuesta rechazar(Long id, String correoAdministrador) {
+        Artesano artesano = buscarEntidadPorId(id);
+
+        if ("RECHAZADO".equalsIgnoreCase(artesano.getEstadoValidacion())) {
+            throw new ConflictoRecursoExcepcion(
+                    "El artesano ya se encuentra rechazado");
+        }
+
+        Usuario administrador = usuarioRepositorio
+                .findByCorreo(correoAdministrador)
+                .orElseThrow(() -> new RecursoNoEncontradoExcepcion(
+                        "No existe el usuario administrador autenticado"));
+
+        artesano.setEstadoValidacion("RECHAZADO");
+        artesano.setValidadoPor(administrador);
+        artesano.setValidadoEn(LocalDateTime.now());
+
+        return convertirARespuesta(
+                artesanoRepositorio.save(artesano));
+    }
+
+    @Transactional
     public ArtesanoRespuesta actualizar(
             Long id,
             ArtesanoPeticion peticion) {

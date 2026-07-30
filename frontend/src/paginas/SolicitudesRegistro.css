@@ -62,7 +62,7 @@
 }
 
 .tabla-solicitudes {
-  min-width: 780px;
+  min-width: 1050px;
 }
 
 .tabla-solicitudes button,
@@ -73,6 +73,58 @@
   background: #fff;
   color: var(--verde);
   font-weight: 700;
+}
+
+.acciones-solicitud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 285px;
+}
+
+.tabla-solicitudes .acciones-solicitud button {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.tabla-solicitudes .boton-aprobar-solicitud {
+  border-color: #287a47;
+  background: #287a47;
+  color: #fff;
+}
+
+.tabla-solicitudes .boton-rechazar-solicitud {
+  border-color: #a13b35;
+  color: #a13b35;
+}
+
+.tabla-solicitudes .acciones-solicitud button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.mensaje-solicitudes {
+  margin: 18px 24px 0;
+  padding: 12px 15px;
+  border: 1px solid;
+  border-radius: 9px;
+  font-weight: 650;
+}
+
+.mensaje-solicitudes-exito {
+  border-color: #bad2c0;
+  background: #edf7ef;
+  color: #326141;
+}
+
+.mensaje-solicitudes-error {
+  border-color: #e1aaa6;
+  background: #fff0ef;
+  color: #963b35;
 }
 
 .estado-solicitudes {

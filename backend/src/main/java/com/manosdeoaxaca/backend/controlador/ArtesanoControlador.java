@@ -85,6 +85,15 @@ public class ArtesanoControlador {
                 artesanoServicio.aprobar(id, authentication.getName()));
     }
 
+    @PatchMapping("/{id}/rechazar")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ArtesanoRespuesta> rechazar(
+            @PathVariable Long id,
+            Authentication authentication) {
+        return ResponseEntity.ok(
+                artesanoServicio.rechazar(id, authentication.getName()));
+    }
+
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ArtesanoRespuesta> actualizar(
