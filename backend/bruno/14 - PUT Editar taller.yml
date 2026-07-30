@@ -1,0 +1,28 @@
+info:
+  name: 14 - PUT Editar taller
+  type: http
+  seq: 14
+
+http:
+  method: PUT
+  url: https://talleresartesaniasoaxaca.dpdns.org/api/talleres/15
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "Taller Artesanal Montse Actualizado",
+        "descripcion": "Taller actualizado dedicado a artesanías tradicionales de Oaxaca.",
+        "direccion": "Avenida de las Artesanías número 50",
+        "municipio": "Oaxaca de Juárez",
+        "comunidadId": 2,
+        "artesanoIds": [1]
+      }
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhcmlwby5nb2IubXgiLCJyb2wiOiJBRE1JTiIsImlhdCI6MTc4NTQyMDkzOSwiZXhwIjoxNzg1NTA3MzM5fQ.lJ87u43iRRlTZky-Aw7tZ-FKV4RV7vf91is12qxG4fE
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

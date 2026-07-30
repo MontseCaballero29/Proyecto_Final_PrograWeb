@@ -1,0 +1,29 @@
+info:
+  name: 09 - PUT Editar artesano
+  type: http
+  seq: 9
+
+http:
+  method: PUT
+  url: https://talleresartesaniasoaxaca.dpdns.org/api/artesanos/20
+  body:
+    type: json
+    data: |-
+      {
+        "usuarioId": 118,
+        "comunidadId": 2,
+        "curp": null,
+        "biografia": "Artesana oaxaqueña con experiencia en elaboración y decoración de productos tradicionales.",
+        "aniosOficio": 6,
+        "lengua": "Español",
+        "especialidadIds": [1, 2]
+      }
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhcmlwby5nb2IubXgiLCJyb2wiOiJBRE1JTiIsImlhdCI6MTc4NTQyMDkzOSwiZXhwIjoxNzg1NTA3MzM5fQ.lJ87u43iRRlTZky-Aw7tZ-FKV4RV7vf91is12qxG4fE
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

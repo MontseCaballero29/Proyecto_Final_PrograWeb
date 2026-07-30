@@ -1,0 +1,28 @@
+info:
+  name: 19 - PUT Editar artesanía
+  type: http
+  seq: 19
+
+http:
+  method: PUT
+  url: https://talleresartesaniasoaxaca.dpdns.org/api/artesanias/16
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "Jarrón artesanal actualizado",
+        "descripcion": "Jarrón de prueba actualizado, elaborado y pintado manualmente.",
+        "precio": 620.00,
+        "existencia": 8,
+        "imagenUrl": null,
+        "tallerId": 1
+      }
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhcmlwby5nb2IubXgiLCJyb2wiOiJBRE1JTiIsImlhdCI6MTc4NTQyMDkzOSwiZXhwIjoxNzg1NTA3MzM5fQ.lJ87u43iRRlTZky-Aw7tZ-FKV4RV7vf91is12qxG4fE
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

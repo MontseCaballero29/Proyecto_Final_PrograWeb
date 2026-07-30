@@ -1,0 +1,29 @@
+info:
+  name: 08 - POST Crear artesano
+  type: http
+  seq: 8
+
+http:
+  method: POST
+  url: https://talleresartesaniasoaxaca.dpdns.org/api/artesanos
+  body:
+    type: json
+    data: |-
+      {
+        "usuarioId": 118,
+        "comunidadId": 1,
+        "curp": null,
+        "biografia": "Artesana dedicada a la elaboración de productos tradicionales de Oaxaca.",
+        "aniosOficio": 5,
+        "lengua": "Español",
+        "especialidadIds": [1]
+      }
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhcmlwby5nb2IubXgiLCJyb2wiOiJBRE1JTiIsImlhdCI6MTc4NTQyMDkzOSwiZXhwIjoxNzg1NTA3MzM5fQ.lJ87u43iRRlTZky-Aw7tZ-FKV4RV7vf91is12qxG4fE
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,28 @@
+info:
+  name: 13 - POST Crear taller
+  type: http
+  seq: 13
+
+http:
+  method: GET
+  url: https://talleresartesaniasoaxaca.dpdns.org/api/talleres
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "Taller Artesanal Montse",
+        "descripcion": "Taller de prueba dedicado a la elaboración de artesanías oaxaqueñas.",
+        "direccion": "Calle de las Artesanías número 25",
+        "municipio": "Oaxaca de Juárez",
+        "comunidadId": 1,
+        "artesanoIds": [1]
+      }
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhcmlwby5nb2IubXgiLCJyb2wiOiJBRE1JTiIsImlhdCI6MTc4NTQyMDkzOSwiZXhwIjoxNzg1NTA3MzM5fQ.lJ87u43iRRlTZky-Aw7tZ-FKV4RV7vf91is12qxG4fE
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
