@@ -345,3 +345,27 @@
     width: 100%;
   }
 }
+
+.estado-validacion-artesano {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 12px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #fff3cd;
+  color: #7b5b00;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.estado-aprobado {
+  background: #e3f3e7;
+  color: #27633a;
+}
+
+.boton-aprobar-artesano {
+  border: 1px solid #287a47;
+  background: #287a47;
+  color: #ffffff;
+}

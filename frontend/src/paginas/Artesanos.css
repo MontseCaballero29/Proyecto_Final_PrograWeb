@@ -354,3 +354,30 @@
     min-width: 84px;
   }
 }
+
+
+.acciones-tabla-artesanos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.boton-eliminar-artesano {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border: 1px solid #a13b35;
+  border-radius: 8px;
+  background: #fff;
+  color: #a13b35;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.boton-eliminar-artesano:hover {
+  background: #a13b35;
+  color: #fff;
+}

@@ -13,8 +13,10 @@ import {
   Pencil,
   Plus,
   RefreshCw,
+  Trash2,
 } from "lucide-react";
 
+import ModalConfirmacion from "../componentes/ModalConfirmacion";
 import "./Artesanias.css";
 
 const API_ARTESANIAS =
@@ -106,6 +108,9 @@ function Artesanias() {
   const [esUltima, setEsUltima] = useState(true);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
+  const [mensajeAccion, setMensajeAccion] = useState("");
+  const [artesaniaAEliminar, setArtesaniaAEliminar] = useState(null);
+  const [eliminando, setEliminando] = useState(false);
 
   const rol = localStorage.getItem("rol");
   const esAdmin = rol === "ADMIN";
@@ -241,6 +246,65 @@ function Artesanias() {
     cargarTalleresPropios();
   }, [cargarTalleresPropios]);
 
+  const eliminarArtesania = async () => {
+    if (!artesaniaAEliminar) {
+      return;
+    }
+
+    const puedeEliminar =
+      esAdmin ||
+      (esArtesano &&
+        talleresPropios.has(
+          Number(artesaniaAEliminar.tallerId),
+        ));
+
+    if (!puedeEliminar) {
+      setArtesaniaAEliminar(null);
+      return;
+    }
+
+    try {
+      setEliminando(true);
+      setMensajeAccion("");
+
+      const respuesta = await fetch(
+        `${API_ARTESANIAS}/${artesaniaAEliminar.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+
+      if (!respuesta.ok) {
+        throw new Error(
+          await obtenerMensajeError(
+            respuesta,
+            `No se pudo eliminar la artesanía. Código: ${respuesta.status}`,
+          ),
+        );
+      }
+
+      const paginaDestino =
+        artesanias.length === 1 && pagina > 0
+          ? pagina - 1
+          : pagina;
+
+      setArtesaniaAEliminar(null);
+      await cargarArtesanias(paginaDestino);
+    } catch (errorPeticion) {
+      setMensajeAccion(
+        errorPeticion.message ||
+          "No fue posible eliminar la artesanía.",
+      );
+      setArtesaniaAEliminar(null);
+    } finally {
+      setEliminando(false);
+    }
+  };
+
   return (
     <section className="pagina-artesanias">
       <div className="encabezado-artesanias">
@@ -298,6 +362,10 @@ function Artesanias() {
           </strong>
         </div>
       </article>
+
+      {mensajeAccion && (
+        <p className="mensaje-accion-eliminacion">{mensajeAccion}</p>
+      )}
 
       <article className="contenedor-artesanias">
         <div className="titulo-listado-artesanias">
@@ -431,19 +499,34 @@ function Artesanias() {
                             talleresPropios.has(
                               Number(artesania.tallerId),
                             )) && (
-                            <button
-                              className="boton-editar-artesania"
-                              type="button"
-                              onClick={() =>
-                                navigate(
-                                  `/artesanias/editar/${artesania.id}`,
-                                )
-                              }
-                              aria-label={`Editar ${artesania.nombre}`}
-                            >
-                              <Pencil size={17} />
-                              Editar
-                            </button>
+                            <div className="acciones-tabla-artesanias">
+                              <button
+                                className="boton-editar-artesania"
+                                type="button"
+                                onClick={() =>
+                                  navigate(
+                                    `/artesanias/editar/${artesania.id}`,
+                                  )
+                                }
+                                aria-label={`Editar ${artesania.nombre}`}
+                              >
+                                <Pencil size={17} />
+                                Editar
+                              </button>
+
+                              <button
+                                className="boton-eliminar-artesania"
+                                type="button"
+                                onClick={() => {
+                                  setMensajeAccion("");
+                                  setArtesaniaAEliminar(artesania);
+                                }}
+                                aria-label={`Eliminar ${artesania.nombre}`}
+                              >
+                                <Trash2 size={17} />
+                                Eliminar
+                              </button>
+                            </div>
                           )}
                         </td>
                       )}
@@ -481,6 +564,23 @@ function Artesanias() {
             </>
           )}
       </article>
+
+      <ModalConfirmacion
+        abierto={Boolean(artesaniaAEliminar)}
+        titulo="Eliminar artesanía"
+        mensaje={
+          artesaniaAEliminar
+            ? `¿Confirmas que deseas eliminar la artesanía “${artesaniaAEliminar.nombre}”? Esta acción no se puede deshacer.`
+            : ""
+        }
+        procesando={eliminando}
+        onCancelar={() => {
+          if (!eliminando) {
+            setArtesaniaAEliminar(null);
+          }
+        }}
+        onConfirmar={eliminarArtesania}
+      />
     </section>
   );
 }

@@ -9,9 +9,11 @@ import {
   Pencil,
   Plus,
   RefreshCw,
+  Trash2,
   UsersRound,
 } from "lucide-react";
 
+import ModalConfirmacion from "../componentes/ModalConfirmacion";
 import "./Artesanos.css";
 
 const API_ARTESANOS = `${import.meta.env.VITE_API_URL}/api/artesanos`;
@@ -31,6 +33,9 @@ function Artesanos() {
   const [esUltima, setEsUltima] = useState(true);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
+  const [mensajeAccion, setMensajeAccion] = useState("");
+  const [artesanoAEliminar, setArtesanoAEliminar] = useState(null);
+  const [eliminando, setEliminando] = useState(false);
 
   const cargarArtesanos = useCallback(async (numeroPagina) => {
     try {
@@ -96,6 +101,50 @@ function Artesanos() {
     cargarArtesanos(0);
   }, [cargarArtesanos]);
 
+  const eliminarArtesano = async () => {
+    if (!esAdmin || !artesanoAEliminar) {
+      return;
+    }
+
+    try {
+      setEliminando(true);
+      setMensajeAccion("");
+
+      const respuesta = await fetch(
+        `${API_ARTESANOS}/${artesanoAEliminar.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+
+      if (!respuesta.ok) {
+        throw new Error(
+          `No se pudo eliminar el artesano. Código: ${respuesta.status}`,
+        );
+      }
+
+      const paginaDestino =
+        artesanos.length === 1 && pagina > 0
+          ? pagina - 1
+          : pagina;
+
+      setArtesanoAEliminar(null);
+      await cargarArtesanos(paginaDestino);
+    } catch (errorPeticion) {
+      setMensajeAccion(
+        errorPeticion.message ||
+          "No fue posible eliminar el artesano.",
+      );
+      setArtesanoAEliminar(null);
+    } finally {
+      setEliminando(false);
+    }
+  };
+
   const obtenerClaseEstado = (estado) => {
     if (estado === "APROBADO") {
       return "estado-artesano estado-artesano-aprobado";
@@ -159,6 +208,10 @@ function Artesanos() {
           <strong>{cargando ? "..." : totalArtesanos}</strong>
         </div>
       </article>
+
+      {mensajeAccion && (
+        <p className="mensaje-accion-eliminacion">{mensajeAccion}</p>
+      )}
 
       <article className="contenedor-artesanos">
         <div className="titulo-listado-artesanos">
@@ -262,18 +315,33 @@ function Artesanos() {
                         </td>
                         {esAdmin && (
                           <td>
-                            <button
-                              className="boton-editar-artesano"
-                              type="button"
-                              onClick={() =>
-                                navigate(
-                                  `/artesanos/editar/${artesano.id}`,
-                                )
-                              }
-                            >
-                              <Pencil size={16} />
-                              Editar
-                            </button>
+                            <div className="acciones-tabla-artesanos">
+                              <button
+                                className="boton-editar-artesano"
+                                type="button"
+                                onClick={() =>
+                                  navigate(
+                                    `/artesanos/editar/${artesano.id}`,
+                                  )
+                                }
+                              >
+                                <Pencil size={16} />
+                                Editar
+                              </button>
+
+                              <button
+                                className="boton-eliminar-artesano"
+                                type="button"
+                                onClick={() => {
+                                  setMensajeAccion("");
+                                  setArtesanoAEliminar(artesano);
+                                }}
+                                aria-label={`Eliminar ${artesano.nombreUsuario}`}
+                              >
+                                <Trash2 size={16} />
+                                Eliminar
+                              </button>
+                            </div>
                           </td>
                         )}
                       </tr>
@@ -307,6 +375,23 @@ function Artesanos() {
           </>
         )}
       </article>
+
+      <ModalConfirmacion
+        abierto={Boolean(artesanoAEliminar)}
+        titulo="Eliminar artesano"
+        mensaje={
+          artesanoAEliminar
+            ? `¿Confirmas que deseas eliminar al artesano “${artesanoAEliminar.nombreUsuario}”? Esta acción no se puede deshacer.`
+            : ""
+        }
+        procesando={eliminando}
+        onCancelar={() => {
+          if (!eliminando) {
+            setArtesanoAEliminar(null);
+          }
+        }}
+        onConfirmar={eliminarArtesano}
+      />
     </section>
   );
 }

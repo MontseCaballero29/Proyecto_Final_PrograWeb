@@ -44,6 +44,7 @@ public class AuthServicio {
         Usuario usuario = new Usuario();
         usuario.setNombre(peticion.getNombre());
         usuario.setCorreo(peticion.getCorreo());
+        usuario.setTelefono(peticion.getTelefono().trim());
         usuario.setPasswordHash(passwordEncoder.encode(peticion.getPassword()));
         usuario.setRol(rolVisitante);
 

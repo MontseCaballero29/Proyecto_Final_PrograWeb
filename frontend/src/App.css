@@ -970,3 +970,40 @@ tbody tr:last-child td {
   font-size: 0.9rem;
   line-height: 1.5;
 }
+
+
+.mensaje-accion-eliminacion {
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  border: 1px solid #e1aaa6;
+  border-radius: 8px;
+  background: #fff2f1;
+  color: #8f302b;
+  font-weight: 650;
+}
+
+.acciones-especialidad {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.boton-eliminar-especialidad {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid #a13b35;
+  border-radius: 8px;
+  background: #fff;
+  color: #a13b35;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.boton-eliminar-especialidad:hover {
+  background: #a13b35;
+  color: #fff;
+}

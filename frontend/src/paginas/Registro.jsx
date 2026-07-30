@@ -6,16 +6,19 @@ const API_REGISTRO = `${import.meta.env.VITE_API_URL}/api/auth/register`;
 
 const PATRON_PASSWORD = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 const PATRON_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PATRON_TELEFONO = /^\+[1-9]\d{9,14}$/;
 
 function Registro() {
   const navigate = useNavigate();
 
   const [nombre, setNombre] = useState("");
   const [correo, setCorreo] = useState("");
+  const [telefono, setTelefono] = useState("");
   const [password, setPassword] = useState("");
 
   const [errorNombre, setErrorNombre] = useState("");
   const [errorCorreo, setErrorCorreo] = useState("");
+  const [errorTelefono, setErrorTelefono] = useState("");
   const [errorPassword, setErrorPassword] = useState("");
 
   const [errorGeneral, setErrorGeneral] = useState("");
@@ -37,6 +40,16 @@ function Registro() {
     }
     if (!PATRON_CORREO.test(valor)) {
       return "El formato del correo no es válido";
+    }
+    return "";
+  };
+
+  const validarTelefono = (valor) => {
+    if (valor.trim() === "") {
+      return "El teléfono es obligatorio";
+    }
+    if (!PATRON_TELEFONO.test(valor.trim())) {
+      return "Usa formato internacional, por ejemplo +529511234567";
     }
     return "";
   };
@@ -63,6 +76,12 @@ function Registro() {
     setErrorCorreo(validarCorreo(valor));
   };
 
+  const alCambiarTelefono = (evento) => {
+    const valor = evento.target.value.replace(/[^+\d]/g, "");
+    setTelefono(valor);
+    setErrorTelefono(validarTelefono(valor));
+  };
+
   const alCambiarPassword = (evento) => {
     const valor = evento.target.value;
     setPassword(valor);
@@ -75,13 +94,15 @@ function Registro() {
 
     const falloNombre = validarNombre(nombre);
     const falloCorreo = validarCorreo(correo);
+    const falloTelefono = validarTelefono(telefono);
     const falloPassword = validarPassword(password);
 
     setErrorNombre(falloNombre);
     setErrorCorreo(falloCorreo);
+    setErrorTelefono(falloTelefono);
     setErrorPassword(falloPassword);
 
-    if (falloNombre || falloCorreo || falloPassword) {
+    if (falloNombre || falloCorreo || falloTelefono || falloPassword) {
       return;
     }
 
@@ -91,7 +112,12 @@ function Registro() {
       const respuesta = await fetch(API_REGISTRO, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nombre, correo, password }),
+        body: JSON.stringify({
+          nombre,
+          correo,
+          telefono: telefono.trim(),
+          password,
+        }),
       });
 
       if (!respuesta.ok) {
@@ -153,6 +179,21 @@ function Registro() {
                 onChange={alCambiarCorreo}
               />
               {errorCorreo && <p className="error-campo">{errorCorreo}</p>}
+            </div>
+
+            <div className="campo-login">
+              <label htmlFor="telefono">Teléfono</label>
+              <input
+                id="telefono"
+                type="tel"
+                value={telefono}
+                onChange={alCambiarTelefono}
+                placeholder="+529511234567"
+                maxLength={16}
+              />
+              {errorTelefono && (
+                <p className="error-campo">{errorTelefono}</p>
+              )}
             </div>
 
             <div className="campo-login">

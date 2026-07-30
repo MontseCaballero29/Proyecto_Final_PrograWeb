@@ -116,14 +116,10 @@ public class ArtesaniaServicio {
     }
 
     @Transactional
-    public void eliminar(Long id) {
-        if (!artesaniaRepositorio.existsById(id)) {
-            throw new RecursoNoEncontradoExcepcion(
-                    "No existe la artesanía con id: " + id
-            );
-        }
-
-        artesaniaRepositorio.deleteById(id);
+    public void eliminar(Long id, String correo) {
+        Artesania artesania = buscarEntidadPorId(id);
+        validarPermisoSobreTaller(artesania.getTaller(), correo);
+        artesaniaRepositorio.delete(artesania);
     }
 
     private Artesania buscarEntidadPorId(Long id) {
